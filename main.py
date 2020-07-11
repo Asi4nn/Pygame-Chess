@@ -1,6 +1,7 @@
 # main.py
 
 import pygame
+from pieces import Piece
 pygame.init()
 
 WIDTH = 800
@@ -10,13 +11,13 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
 # images
 board = pygame.image.load("Board.png")
-pieces = pygame.image.load("Pieces.png")
+pieces = pygame.image.load("Pieces.png") # spritesheet of all pieces
 
 # square names matched to their cords
 squares = {}
 for i in range(1, 9):
     for j, file in enumerate(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']):
-        squares[a + str(i)] = (16 + 96*j, 16 + 96*i)
+        squares[file + str(i)] = (16 + 96*j, 16 + 96*i)
 
 
 def setup():
@@ -24,7 +25,7 @@ def setup():
     Crop images of the pieces and initialize their cords
     '''
     pieces = {}
-    
+
 
 def drawWindow(window):
     global board, pieces
@@ -43,7 +44,7 @@ def drawWindow(window):
     w_Pawns = []
     for i in range(8):
         w_Pawn = pieces.subsurface((1750, 10, 332, 340))
-        w_Pawn = pygame.transform.scale(w_Pawn, (96, 96)).convert_alpha()
+        w_Pawn = pygame.transform.scale(w_Pawn, (96, 96)).convert()
         screen.blit(w_Pawn, (16+96*i, 16+96*6))
 
     pygame.display.update()
