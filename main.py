@@ -2,7 +2,10 @@
 
 import pygame
 from pieces import Piece
+pygame.mixer.pre_init(22050, -16, 2, 1024)
 pygame.init()
+pygame.mixer.quit()
+pygame.mixer.init(22050, -16, 2, 1024)
 
 WIDTH = 800
 HEIGHT = 800
@@ -14,11 +17,19 @@ pygame.display.set_caption('Pygame Chess')
 board = pygame.image.load("Board.png")
 pieces = pygame.image.load("Pieces.png") # spritesheet of all pieces
 
-# square names matched to their cords
-squares = {}
+# sounds
+move = pygame.mixer.Sound("Move.wav")
+capture = pygame.mixer.Sound("Capture.wav")
+
+
+
+squares = {} # square names matched to their cords
+occupied = {}
 for i in range(1, 9):
     for j, file in enumerate(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']):
         squares[file + str(i)] = (16 + 96*j, 800 - 16 - 96*i)
+        # rows 1, 2, 7, and 8 are occupied at the beginning
+        occupied[file + str(i)] = None
 
 
 def setup():
@@ -43,53 +54,55 @@ def setup():
 
     # bishops
     piece_list.append(Piece("Bishop", "White", 'c1'))
+    occupied['c1'] = piece_list[-1]
     piece_list.append(Piece("Bishop", "White", 'f1'))
+    occupied['f1'] = piece_list[-1]
 
     piece_list.append(Piece("Bishop", "Black", 'c8'))
+    occupied['c8'] = piece_list[-1]
     piece_list.append(Piece("Bishop", "Black", 'f8'))
+    occupied['f8'] = piece_list[-1]
 
     # knights
     piece_list.append(Piece("Knight", "White", 'b1'))
+    occupied['b1'] = piece_list[-1]
     piece_list.append(Piece("Knight", "White", 'g1'))
+    occupied['g1'] = piece_list[-1]
 
     piece_list.append(Piece("Knight", "Black", 'b8'))
+    occupied['b8'] = piece_list[-1]
     piece_list.append(Piece("Knight", "Black", 'g8'))
+    occupied['g8'] = piece_list[-1]
 
     # rooks
     piece_list.append(Piece("Rook", "White", 'a1'))
+    occupied['a1'] = piece_list[-1]
     piece_list.append(Piece("Rook", "White", 'h1'))
+    occupied['h1'] = piece_list[-1]
 
     piece_list.append(Piece("Rook", "Black", 'a8'))
+    occupied['a8'] = piece_list[-1]
     piece_list.append(Piece("Rook", "Black", 'h8'))
+    occupied['h8'] = piece_list[-1]
 
     # queens and kings
     piece_list.append(Piece("Queen", "White", 'd1'))
+    occupied['d1'] = piece_list[-1]
     piece_list.append(Piece("Queen", "Black", 'd8'))
+    occupied['d8'] = piece_list[-1]
 
     piece_list.append(Piece("King", "White", 'e1'))
+    occupied['e1'] = piece_list[-1]
     piece_list.append(Piece("King", "Black", 'e8'))
+    occupied['e8'] = piece_list[-1]
 
     return piece_list
-
-
-def drawWindow(window, piece_list):
-    global board, pieces
-
-    # draw the board
-    board = pygame.transform.scale(board, (WIDTH, HEIGHT))
-    screen.blit(board, (0,0))
-
-    # draw pieces
-    for piece in piece_list:
-        piece.draw(screen)
-
-    pygame.display.update()
 
 
 def get_square(cords):
     '''
     Returns the square that is at the given cords
-    Note: clicking on the border returns None
+    Note: cords on the border returns None
     '''
     for cord in cords:
         if cord >= 784 or cord <= 16:
@@ -110,6 +123,20 @@ def get_square(cords):
             break
 
     return col + row
+
+
+def drawWindow(window, piece_list):
+    global board, pieces
+
+    # draw the board
+    board = pygame.transform.scale(board, (WIDTH, HEIGHT))
+    screen.blit(board, (0,0))
+
+    # draw pieces
+    for piece in piece_list:
+        piece.draw(screen)
+
+    pygame.display.update()
 
 
 piece_list = setup()
@@ -138,10 +165,21 @@ while inUse:
                         piece.state = 'Lifted'
                         lifted_piece = piece
                         lifted_piece.cords = (pos[0] - 48, pos[1] - 48)
+                        print(lifted_piece.legal_moves(piece_list, occupied))
         elif event.type == pygame.MOUSEBUTTONUP:
-            if lifted_piece != None:
+            pos = pygame.mouse.get_pos()
+            sq = get_square(pos)
+            if lifted_piece != None and sq != None:
+                if sq != lifted_piece.position:
+                    move.play()
+                if occupied[sq] == None:
+                    occupied[lifted_piece.position] = None
+                    occupied[sq] = lifted_piece
+                    lifted_piece.position = sq
                 lifted_piece.state = 'Down'
                 lifted_piece = None
-
+            elif lifted_piece != None:
+                lifted_piece.state = 'Down'
+                lifted_piece = None
 
 pygame.quit()
