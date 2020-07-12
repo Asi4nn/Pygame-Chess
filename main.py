@@ -8,10 +8,17 @@ WIDTH = 800
 HEIGHT = 800
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption('Pygame Chess')
 
 # images
 board = pygame.image.load("Board.png")
 pieces = pygame.image.load("Pieces.png") # spritesheet of all pieces
+
+# square names matched to their cords
+squares = {}
+for i in range(1, 9):
+    for j, file in enumerate(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']):
+        squares[file + str(i)] = (16 + 96*j, 800 - 16 - 96*i)
 
 
 def setup():
@@ -79,19 +86,62 @@ def drawWindow(window, piece_list):
     pygame.display.update()
 
 
+def get_square(cords):
+    '''
+    Returns the square that is at the given cords
+    Note: clicking on the border returns None
+    '''
+    for cord in cords:
+        if cord >= 784 or cord <= 16:
+            return None
+
+    col = None
+    for j, file in enumerate(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']):
+        if 16 + 96*j > cords[0]:
+            col = chr(ord(file) - 1)
+            break
+    if col == None:
+        col = 'h'
+
+
+    for i in range(1, 9):
+        if 800 - 16 - 96*i < cords[1]:
+            row = str(i)
+            break
+
+    return col + row
+
+
 piece_list = setup()
+lifted_piece = None
 
 inUse = True
 while inUse:
-    pygame.time.delay(50)
+    pygame.time.delay(10)
     drawWindow(screen, piece_list)
+
+    if lifted_piece != None:
+        pos = pygame.mouse.get_pos()
+        lifted_piece.cords = (pos[0] - 48, pos[1] - 48)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             inUse = False
-        if event.type == pygame.KEYDOWN:
+        elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 inUse = False
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            pos = pygame.mouse.get_pos()
+            if pygame.mouse.get_pressed()[0]:
+                for piece in piece_list:
+                    if piece.position == get_square(pos):
+                        piece.state = 'Lifted'
+                        lifted_piece = piece
+                        lifted_piece.cords = (pos[0] - 48, pos[1] - 48)
+        elif event.type == pygame.MOUSEBUTTONUP:
+            if lifted_piece != None:
+                lifted_piece.state = 'Down'
+                lifted_piece = None
 
 
 pygame.quit()

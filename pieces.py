@@ -68,11 +68,20 @@ class Piece(object):
                 image = pygame.transform.scale(image, (96, 96)).convert_alpha()
                 self.image = image
         self.position = position
+        self.state = 'Down' # 'Down' or 'Lifted'
+        self.cords = (0, 0)
 
 
     def draw(self, screen):
-        screen.blit(self.image, squares[self.position])
+        if self.state == 'Down':
+            screen.blit(self.image, squares[self.position])
+        else:
+            screen.blit(self.image, self.cords)
 
 
-    def move(self):
+    def move(self, dest):
         pass
+
+
+    def legal_moves(piece_list):
+        return
