@@ -14,69 +14,53 @@ for i in range(1, 9):
 
 class Piece(object):
 
-    def __init__(self, type, colour, position):
-        self.type = type # 'Pawn' 'Bishop' 'Rook' 'Knight' 'Queen' 'King'
+    def __init__(self, colour, position):
         self.colour = colour
-        if colour == 'White':
-            if type == 'Pawn':
-                image = pieces.subsurface((1750, 10, 332, 340))
-                image = pygame.transform.scale(image, (96, 96)).convert_alpha()
-                self.image = image
-            elif type == 'Bishop':
-                image = pieces.subsurface((703, 0, 340, 340))
-                image = pygame.transform.scale(image, (96, 96)).convert_alpha()
-                self.image = image
-            elif type == 'Knight':
-                image = pieces.subsurface((1050, 0, 340, 340))
-                image = pygame.transform.scale(image, (96, 96)).convert_alpha()
-                self.image = image
-            elif type == 'Rook':
-                image = pieces.subsurface((1400, 0, 340, 340))
-                image = pygame.transform.scale(image, (96, 96)).convert_alpha()
-                self.image = image
-            elif type == 'Queen':
-                image = pieces.subsurface((355, 0, 340, 340))
-                image = pygame.transform.scale(image, (96, 96)).convert_alpha()
-                self.image = image
-            elif type == 'King':
-                image = pieces.subsurface((5, 0, 340, 340))
-                image = pygame.transform.scale(image, (96, 96)).convert_alpha()
-                self.image = image
-        elif colour == 'Black':
-            if type == 'Pawn':
-                image = pieces.subsurface((1750, 350, 332, 340))
-                image = pygame.transform.scale(image, (96, 96)).convert_alpha()
-                self.image = image
-            elif type == 'Bishop':
-                image = pieces.subsurface((703, 350, 340, 340))
-                image = pygame.transform.scale(image, (96, 96)).convert_alpha()
-                self.image = image
-            elif type == 'Knight':
-                image = pieces.subsurface((1050, 350, 340, 340))
-                image = pygame.transform.scale(image, (96, 96)).convert_alpha()
-                self.image = image
-            elif type == 'Rook':
-                image = pieces.subsurface((1400, 350, 340, 340))
-                image = pygame.transform.scale(image, (96, 96)).convert_alpha()
-                self.image = image
-            elif type == 'Queen':
-                image = pieces.subsurface((355, 350, 340, 340))
-                image = pygame.transform.scale(image, (96, 96)).convert_alpha()
-                self.image = image
-            elif type == 'King':
-                image = pieces.subsurface((5, 350, 340, 340))
-                image = pygame.transform.scale(image, (96, 96)).convert_alpha()
-                self.image = image
         self.position = position
         self.state = 'Down' # 'Down' 'Lifted' or 'Selected'
         self.cords = (0, 0)
 
 
-    def draw(self, screen):
+    def draw(self, screen, circle):
         if self.state == 'Down':
             screen.blit(self.image, squares[self.position])
+        elif self.state == 'Selected':
+            screen.blit(self.image, squares[self.position])
+            screen.blit(circle, squares[self.position])
         else:
             screen.blit(self.image, self.cords)
+
+
+    def move(self, dest):
+        pass
+
+
+class Pawn(Piece):
+
+    def __init__(self, colour, position):
+        super(Pawn, self).__init__(colour, position)
+        if colour == 'White':
+            image = pieces.subsurface((1750, 10, 332, 340))
+            image = pygame.transform.scale(image, (96, 96)).convert_alpha()
+            self.image = image
+        else:
+            image = pieces.subsurface((1750, 350, 332, 340))
+            image = pygame.transform.scale(image, (96, 96)).convert_alpha()
+            self.image = image
+
+
+    def possible_captures(self):
+        legal = []
+        if self.colour == 'White':
+            # check squares diagonal and infront to see if you can move by capturing
+            legal.append(chr(ord(self.position[0]) - 1) + str(int(self.position[1]) + 1))
+            legal.append(chr(ord(self.position[0]) + 1) + str(int(self.position[1]) + 1))
+        elif self.colour == 'Black':
+            # check squares diagonal and infront to see if you can move by capturing
+            legal.append(chr(ord(self.position[0]) - 1) + str(int(self.position[1]) - 1))
+            legal.append(chr(ord(self.position[0]) + 1) + str(int(self.position[1]) - 1))
+
+        return legal
 
 
     def legal_moves(self, piece_list, occupied):
@@ -84,134 +68,345 @@ class Piece(object):
         Returns a list of squares a piece can move to
         '''
         legal = []
-        if self.type == 'Pawn':
-            if self.colour == 'White':
-                if occupied[self.position[0] + str(int(self.position[1]) + 1)] == None:
-                    legal.append(self.position[0] + str(int(self.position[1]) + 1))
-                    # check if pawn is on starting square, if so it can move 2 squares forward
-                    if self.position[1] == '2' and occupied[self.position[0] + str(int(self.position[1]) + 2)] == None:
-                        legal.append(self.position[0] + str(int(self.position[1]) + 2))
+        if self.colour == 'White':
+            if occupied[self.position[0] + str(int(self.position[1]) + 1)] == None:
+                legal.append(self.position[0] + str(int(self.position[1]) + 1))
+                # check if pawn is on starting square, if so it can move 2 squares forward
+                if self.position[1] == '2' and occupied[self.position[0] + str(int(self.position[1]) + 2)] == None:
+                    legal.append(self.position[0] + str(int(self.position[1]) + 2))
 
-                # check squares diagonal and infront to see if you can move by capturing
-                dia1 = chr(ord(self.position[0]) - 1) + str(int(self.position[1]) + 1)
-                dia2 = chr(ord(self.position[0]) + 1) + str(int(self.position[1]) + 1)
-                if self.position[0] != 'a' and occupied[dia1] != None and occupied[dia1].colour != self.colour:
-                    legal.append(dia1)
-                if self.position[0] != 'h' and occupied[dia2] != None and occupied[dia2].colour != self.colour:
-                    legal.append(dia2)
+        elif self.colour == 'Black':
+            if occupied[self.position[0] + str(int(self.position[1]) - 1)] == None:
+                legal.append(self.position[0] + str(int(self.position[1]) - 1))
+                # check if pawn is on starting square, if so it can move 2 squares forward
+                if self.position[1] == '7' and occupied[self.position[0] + str(int(self.position[1]) - 2)] == None:
+                    legal.append(self.position[0] + str(int(self.position[1]) - 2))
 
-            elif self.colour == 'Black':
-                if occupied[self.position[0] + str(int(self.position[1]) - 1)] == None:
-                    legal.append(self.position[0] + str(int(self.position[1]) - 1))
-                    # check if pawn is on starting square, if so it can move 2 squares forward
-                    if self.position[1] == '7' and occupied[self.position[0] + str(int(self.position[1]) - 2)] == None:
-                        legal.append(self.position[0] + str(int(self.position[1]) - 2))
+        for dest in self.possible_captures():
+            if dest in occupied and occupied[dest] != None and occupied[dest].colour != self.colour:
+                legal.append(dest)
 
-                # check squares diagonal and infront to see if you can move by capturing
-                dia1 = chr(ord(self.position[0]) - 1) + str(int(self.position[1]) - 1)
-                dia2 = chr(ord(self.position[0]) + 1) + str(int(self.position[1]) - 1)
-                if self.position[0] != 'a' and occupied[dia1] != None and occupied[dia1].colour != self.colour:
-                    legal.append(dia1)
-                if self.position[0] != 'h' and occupied[dia2] != None and occupied[dia2].colour != self.colour:
-                    legal.append(dia2)
-
-        elif self.type == 'Bishop':
-            # NOTE: REWORK THIS LATER TO BE LESS UGLY
-            diagonal = 1
-            paths = [True, True, True, True] # top left, top right, bottom right, bottom left
-            # checks all diagonals that are 'diagonal' units away from the position
-            if self.position[0] == 'a':
-                paths[0] = False
-                paths[3] = False
-            elif self.position[0] == 'h':
-                paths[1] = False
-                paths[2] = False
-
-            if self.position[1] == '1':
-                paths[2] = False
-                paths[3] = False
-            elif self.position[1] == '8':
-                paths[0] = False
-                paths[1] = False
-
-            while True in paths:
-                if paths[0]:
-                    sq = chr(ord(self.position[0]) - diagonal) + str(int(self.position[1]) + diagonal)
-                    if sq[0] == 'a' or sq[1] == '8':
-                        paths[0] = False
-                        if occupied[sq] == None:
-                            legal.append(sq)
-                    elif occupied[sq] == None:
-                        legal.append(sq)
-                    else:
-                        paths[0] = False
-                if paths[1]:
-                    sq = chr(ord(self.position[0]) + diagonal) + str(int(self.position[1]) + diagonal)
-                    if sq[0] == 'h' or sq[1] == '8':
-                        paths[1] = False
-                        if occupied[sq] == None:
-                            legal.append(sq)
-                    elif occupied[sq] == None:
-                        legal.append(sq)
-                    else:
-                        paths[1] = False
-                if paths[2]:
-                    sq = chr(ord(self.position[0]) + diagonal) + str(int(self.position[1]) - diagonal)
-                    if sq[0] == 'h' or sq[1] == '1':
-                        paths[2] = False
-                        if occupied[sq] == None:
-                            legal.append(sq)
-                    elif occupied[sq] == None:
-                        legal.append(sq)
-                    else:
-                        paths[2] = False
-                if paths[3]:
-                    sq = chr(ord(self.position[0]) - diagonal) + str(int(self.position[1]) - diagonal)
-                    if sq[0] == 'a' or sq[1] == '1':
-                        paths[3] = False
-                        if occupied[sq] == None:
-                            legal.append(sq)
-                    elif occupied[sq] == None:
-                        legal.append(sq)
-                    else:
-                        paths[3] = False
-
-                diagonal += 1
-
-        elif self.type == 'Knight':
-            # manually check the 8 squares a knight could jump too
-            for i in [1, -1]:
-                for j in [1, -1]:
-                    dest = chr(ord(self.position[0]) + 2*i) + str(int(self.position[1]) + j)
-                    '''
-                    Checks these possible moves
-                       ↔
-                       |
-                       K
-                       |
-                       ↔
-                    '''
-                    if dest in occupied and (occupied[dest] == None or occupied[dest].colour != self.colour):
-                        legal.append(dest)
-
-                    dest = chr(ord(self.position[0]) + i) + str(int(self.position[1]) + 2*j)
-                    '''
-                    Checks these possible moves
-                    ↕ - K - ↕
-                    '''
-                    if dest in occupied and (occupied[dest] == None or occupied[dest].colour != self.colour):
-                        legal.append(dest)
-
-        elif self.type == 'Rook':
-            pass
-
-        elif self.type == 'Queen':
-            pass
-
-        elif self.type == 'King':
-            pass
 
         return legal
 
-        def move(self, dest_cords):
-            pass
+
+class Bishop(Piece):
+
+    def __init__(self, colour, position):
+        super(Bishop, self).__init__(colour, position)
+        if colour == 'White':
+            image = pieces.subsurface((703, 0, 340, 340))
+            image = pygame.transform.scale(image, (96, 96)).convert_alpha()
+            self.image = image
+        else:
+            image = pieces.subsurface((703, 350, 340, 340))
+            image = pygame.transform.scale(image, (96, 96)).convert_alpha()
+            self.image = image
+
+    def legal_moves(self, piece_list, occupied):
+        '''
+        Returns a list of squares a piece can move to
+        '''
+        legal = []
+        diagonal = 1
+        paths = [True, True, True, True] # top left, top right, bottom right, bottom left
+        # checks all diagonals that are 'diagonal' units away from the position
+
+        while True in paths:
+            if paths[0]:
+                sq = chr(ord(self.position[0]) - diagonal) + str(int(self.position[1]) + diagonal)
+                if sq in occupied and (occupied[sq] == None or occupied[sq].colour != self.colour):
+                    legal.append(sq)
+                    if occupied[sq] != None:
+                        paths[0] = False
+                else:
+                    paths[0] = False
+            if paths[1]:
+                sq = chr(ord(self.position[0]) + diagonal) + str(int(self.position[1]) + diagonal)
+                if sq in occupied and (occupied[sq] == None or occupied[sq].colour != self.colour):
+                    legal.append(sq)
+                    if occupied[sq] != None:
+                        paths[1] = False
+                else:
+                    paths[1] = False
+            if paths[2]:
+                sq = chr(ord(self.position[0]) + diagonal) + str(int(self.position[1]) - diagonal)
+                if sq in occupied and (occupied[sq] == None or occupied[sq].colour != self.colour):
+                    legal.append(sq)
+                    if occupied[sq] != None:
+                        paths[2] = False
+                else:
+                    paths[2] = False
+            if paths[3]:
+                sq = chr(ord(self.position[0]) - diagonal) + str(int(self.position[1]) - diagonal)
+                if sq in occupied and (occupied[sq] == None or occupied[sq].colour != self.colour):
+                    legal.append(sq)
+                    if occupied[sq] != None:
+                        paths[3] = False
+                else:
+                    paths[3] = False
+
+            diagonal += 1
+
+        return legal
+
+
+class Knight(Piece):
+
+    def __init__(self, colour, position):
+        super(Knight, self).__init__(colour, position)
+        if colour == 'White':
+            image = pieces.subsurface((1050, 0, 340, 340))
+            image = pygame.transform.scale(image, (96, 96)).convert_alpha()
+            self.image = image
+        else:
+            image = pieces.subsurface((1050, 350, 340, 340))
+            image = pygame.transform.scale(image, (96, 96)).convert_alpha()
+            self.image = image
+
+
+    def legal_moves(self, piece_list, occupied):
+        '''
+        Returns a list of squares a piece can move to
+        '''
+        legal = []
+        # manually check the 8 squares a knight could jump too
+        for i in [1, -1]:
+            for j in [1, -1]:
+                dest = chr(ord(self.position[0]) + 2*i) + str(int(self.position[1]) + j)
+                '''
+                Checks these possible moves
+                   ↔
+                   |
+                   K
+                   |
+                   ↔
+                '''
+                if dest in occupied and (occupied[dest] == None or occupied[dest].colour != self.colour):
+                    legal.append(dest)
+
+                dest = chr(ord(self.position[0]) + i) + str(int(self.position[1]) + 2*j)
+                '''
+                Checks these possible moves
+                ↕ - K - ↕
+                '''
+                if dest in occupied and (occupied[dest] == None or occupied[dest].colour != self.colour):
+                    legal.append(dest)
+
+        return legal
+
+
+class Rook(Piece):
+
+    def __init__(self, colour, position):
+        super(Rook, self).__init__(colour, position)
+        self.has_moved = False # to keep track of castles
+        if colour == 'White':
+            image = pieces.subsurface((1400, 0, 340, 340))
+            image = pygame.transform.scale(image, (96, 96)).convert_alpha()
+            self.image = image
+        else:
+            image = pieces.subsurface((1400, 350, 340, 340))
+            image = pygame.transform.scale(image, (96, 96)).convert_alpha()
+            self.image = image
+
+
+    def legal_moves(self, piece_list, occupied):
+        '''
+        Returns a list of squares a piece can move to
+        '''
+        legal = []
+        # similar to the bishop's movement
+        distance = 1
+        paths = [True, True, True, True] # left, right, up, down
+
+        while True in paths:
+            if paths[0]:
+                sq = chr(ord(self.position[0]) - distance) + self.position[1]
+                if sq in occupied and (occupied[sq] == None or occupied[sq].colour != self.colour):
+                    legal.append(sq)
+                    if occupied[sq] != None:
+                        paths[0] = False
+                else:
+                    paths[0] = False
+            if paths[1]:
+                sq = chr(ord(self.position[0]) + distance) + self.position[1]
+                if sq in occupied and (occupied[sq] == None or occupied[sq].colour != self.colour):
+                    legal.append(sq)
+                    if occupied[sq] != None:
+                        paths[1] = False
+                else:
+                    paths[1] = False
+            if paths[2]:
+                sq = self.position[0] + str(int(self.position[1]) + distance)
+                if sq in occupied and (occupied[sq] == None or occupied[sq].colour != self.colour):
+                    legal.append(sq)
+                    if occupied[sq] != None:
+                        paths[2] = False
+                else:
+                    paths[2] = False
+            if paths[3]:
+                sq = self.position[0] + str(int(self.position[1]) - distance)
+                if sq in occupied and (occupied[sq] == None or occupied[sq].colour != self.colour):
+                    legal.append(sq)
+                    if occupied[sq] != None:
+                        paths[3] = False
+                else:
+                    paths[3] = False
+
+            distance += 1
+
+        return legal
+
+
+class Queen(Piece):
+
+    def __init__(self, colour, position):
+        super(Queen, self).__init__(colour, position)
+        if colour == 'White':
+            image = pieces.subsurface((355, 0, 340, 340))
+            image = pygame.transform.scale(image, (96, 96)).convert_alpha()
+            self.image = image
+        else:
+            image = pieces.subsurface((355, 350, 340, 340))
+            image = pygame.transform.scale(image, (96, 96)).convert_alpha()
+            self.image = image
+
+
+    def legal_moves(self, piece_list, occupied):
+        '''
+        Returns a list of squares a piece can move to
+        '''
+        legal = []
+        # combine bishop and rook movement
+
+        diagonal = 1
+        paths = [True, True, True, True] # top left, top right, bottom right, bottom left
+        # checks all diagonals that are 'diagonal' units away from the position
+
+        while True in paths:
+            if paths[0]:
+                sq = chr(ord(self.position[0]) - diagonal) + str(int(self.position[1]) + diagonal)
+                if sq in occupied and (occupied[sq] == None or occupied[sq].colour != self.colour):
+                    legal.append(sq)
+                    if occupied[sq] != None:
+                        paths[0] = False
+                else:
+                    paths[0] = False
+            if paths[1]:
+                sq = chr(ord(self.position[0]) + diagonal) + str(int(self.position[1]) + diagonal)
+                if sq in occupied and (occupied[sq] == None or occupied[sq].colour != self.colour):
+                    legal.append(sq)
+                    if occupied[sq] != None:
+                        paths[1] = False
+                else:
+                    paths[1] = False
+            if paths[2]:
+                sq = chr(ord(self.position[0]) + diagonal) + str(int(self.position[1]) - diagonal)
+                if sq in occupied and (occupied[sq] == None or occupied[sq].colour != self.colour):
+                    legal.append(sq)
+                    if occupied[sq] != None:
+                        paths[2] = False
+                else:
+                    paths[2] = False
+            if paths[3]:
+                sq = chr(ord(self.position[0]) - diagonal) + str(int(self.position[1]) - diagonal)
+                if sq in occupied and (occupied[sq] == None or occupied[sq].colour != self.colour):
+                    legal.append(sq)
+                    if occupied[sq] != None:
+                        paths[3] = False
+                else:
+                    paths[3] = False
+
+            diagonal += 1
+
+        distance = 1
+        paths = [True, True, True, True] # left, right, up, down
+
+        while True in paths:
+            if paths[0]:
+                sq = chr(ord(self.position[0]) - distance) + self.position[1]
+                if sq in occupied and (occupied[sq] == None or occupied[sq].colour != self.colour):
+                    legal.append(sq)
+                    if occupied[sq] != None:
+                        paths[0] = False
+                else:
+                    paths[0] = False
+            if paths[1]:
+                sq = chr(ord(self.position[0]) + distance) + self.position[1]
+                if sq in occupied and (occupied[sq] == None or occupied[sq].colour != self.colour):
+                    legal.append(sq)
+                    if occupied[sq] != None:
+                        paths[1] = False
+                else:
+                    paths[1] = False
+            if paths[2]:
+                sq = self.position[0] + str(int(self.position[1]) + distance)
+                if sq in occupied and (occupied[sq] == None or occupied[sq].colour != self.colour):
+                    legal.append(sq)
+                    if occupied[sq] != None:
+                        paths[2] = False
+                else:
+                    paths[2] = False
+            if paths[3]:
+                sq = self.position[0] + str(int(self.position[1]) - distance)
+                if sq in occupied and (occupied[sq] == None or occupied[sq].colour != self.colour):
+                    legal.append(sq)
+                    if occupied[sq] != None:
+                        paths[3] = False
+                else:
+                    paths[3] = False
+
+            distance += 1
+
+        return legal
+
+
+class King(Piece):
+
+    def __init__(self, colour, position):
+        super(King, self).__init__(colour, position)
+        self.has_moved = False # to keep track of castles
+        if colour == 'White':
+            image = pieces.subsurface((5, 0, 340, 340))
+            image = pygame.transform.scale(image, (96, 96)).convert_alpha()
+            self.image = image
+        else:
+            image = pieces.subsurface((5, 350, 340, 340))
+            image = pygame.transform.scale(image, (96, 96)).convert_alpha()
+            self.image = image
+        self.around = []
+        for i in range(-1, 2):
+            for j in range(-1, 2):
+                if i != 0 or j != 0:
+                    self.around.append(chr(ord(self.position[0]) + i) + str(int(self.position[1]) + j))
+
+
+    def legal_moves(self, piece_list, occupied):
+        '''
+        Returns a list of squares a piece can move to
+        '''
+        legal = []
+        for i in range(-1, 2):
+            for j in range(-1, 2):
+                if i != 0 or j != 0:
+                    dest = chr(ord(self.position[0]) + i) + str(int(self.position[1]) + j)
+                    if dest in occupied and (occupied[dest] == None or occupied[dest].colour != self.colour):
+                        square_attacked = False
+                        for piece in piece_list:
+                            if piece.colour != self.colour:
+                                if str(type(piece)) == "<class 'pieces.King'>":
+                                    if dest in piece.around:
+                                        square_attacked = True
+                                        break
+                                elif str(type(piece)) == "<class 'pieces.Pawn'>":
+                                    if dest in piece.possible_captures():
+                                        square_attacked = True
+                                        break
+                                elif dest in piece.legal_moves(piece_list, occupied):
+                                    square_attacked = True
+                                    break
+                        if not square_attacked:
+                            legal.append(dest)
+
+        return legal

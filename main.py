@@ -1,7 +1,7 @@
 # main.py
 
 import pygame
-from pieces import Piece
+from pieces import *
 pygame.mixer.pre_init(22050, -16, 2, 1024)
 pygame.init()
 pygame.mixer.quit()
@@ -16,6 +16,9 @@ pygame.display.set_caption('Pygame Chess')
 # images
 board = pygame.image.load("Board.png")
 pieces = pygame.image.load("Pieces.png") # spritesheet of all pieces
+circle = pygame.image.load("circle.png")
+circle = pygame.transform.scale(circle, (96, 96)).convert_alpha()
+circle.set_alpha(10)
 
 # sounds
 move = pygame.mixer.Sound("Move.wav")
@@ -46,55 +49,55 @@ def setup():
 
     # pawns
     for i in range(8):
-        piece_list.append(Piece("Pawn", "White", chr(ord('a') + i) + '2'))
+        piece_list.append(Pawn("White", chr(ord('a') + i) + '2'))
         occupied[chr(ord('a') + i) + '2'] = piece_list[-1]
 
     for i in range(8):
-        piece_list.append(Piece("Pawn", "Black", chr(ord('a') + i) + '7'))
+        piece_list.append(Pawn("Black", chr(ord('a') + i) + '7'))
         occupied[chr(ord('a') + i) + '7'] = piece_list[-1]
 
     # bishops
-    piece_list.append(Piece("Bishop", "White", 'c1'))
+    piece_list.append(Bishop("White", 'c1'))
     occupied['c1'] = piece_list[-1]
-    piece_list.append(Piece("Bishop", "White", 'f1'))
+    piece_list.append(Bishop("White", 'f1'))
     occupied['f1'] = piece_list[-1]
 
-    piece_list.append(Piece("Bishop", "Black", 'c8'))
+    piece_list.append(Bishop("Black", 'c8'))
     occupied['c8'] = piece_list[-1]
-    piece_list.append(Piece("Bishop", "Black", 'f8'))
+    piece_list.append(Bishop("Black", 'f8'))
     occupied['f8'] = piece_list[-1]
 
     # knights
-    piece_list.append(Piece("Knight", "White", 'b1'))
+    piece_list.append(Knight("White", 'b1'))
     occupied['b1'] = piece_list[-1]
-    piece_list.append(Piece("Knight", "White", 'g1'))
+    piece_list.append(Knight("White", 'g1'))
     occupied['g1'] = piece_list[-1]
 
-    piece_list.append(Piece("Knight", "Black", 'b8'))
+    piece_list.append(Knight("Black", 'b8'))
     occupied['b8'] = piece_list[-1]
-    piece_list.append(Piece("Knight", "Black", 'g8'))
+    piece_list.append(Knight("Black", 'g8'))
     occupied['g8'] = piece_list[-1]
 
     # rooks
-    piece_list.append(Piece("Rook", "White", 'a1'))
+    piece_list.append(Rook("White", 'a1'))
     occupied['a1'] = piece_list[-1]
-    piece_list.append(Piece("Rook", "White", 'h1'))
+    piece_list.append(Rook("White", 'h1'))
     occupied['h1'] = piece_list[-1]
 
-    piece_list.append(Piece("Rook", "Black", 'a8'))
+    piece_list.append(Rook("Black", 'a8'))
     occupied['a8'] = piece_list[-1]
-    piece_list.append(Piece("Rook", "Black", 'h8'))
+    piece_list.append(Rook("Black", 'h8'))
     occupied['h8'] = piece_list[-1]
 
     # queens and kings
-    piece_list.append(Piece("Queen", "White", 'd1'))
+    piece_list.append(Queen("White", 'd1'))
     occupied['d1'] = piece_list[-1]
-    piece_list.append(Piece("Queen", "Black", 'd8'))
+    piece_list.append(Queen("Black", 'd8'))
     occupied['d8'] = piece_list[-1]
 
-    piece_list.append(Piece("King", "White", 'e1'))
+    piece_list.append(King("White", 'e1'))
     occupied['e1'] = piece_list[-1]
-    piece_list.append(Piece("King", "Black", 'e8'))
+    piece_list.append(King("Black", 'e8'))
     occupied['e8'] = piece_list[-1]
 
     return piece_list
@@ -135,22 +138,22 @@ def drawWindow(window, piece_list):
 
     # draw pieces
     for piece in piece_list:
-        piece.draw(screen)
+        piece.draw(screen, circle)
 
     pygame.display.update()
 
 
 piece_list = setup()
-lifted_piece = None
+selected_piece = None
 
 inUse = True
 while inUse:
     pygame.time.delay(10)
     drawWindow(screen, piece_list)
 
-    if lifted_piece != None:
+    if selected_piece != None:
         pos = pygame.mouse.get_pos()
-        lifted_piece.cords = (pos[0] - 48, pos[1] - 48)
+        selected_piece.cords = (pos[0] - 48, pos[1] - 48)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -161,25 +164,33 @@ while inUse:
         elif event.type == pygame.MOUSEBUTTONDOWN:
             pos = pygame.mouse.get_pos()
             if pygame.mouse.get_pressed()[0]:
-                for piece in piece_list:
-                    if piece.position == get_square(pos):
-                        piece.state = 'Lifted'
-                        lifted_piece = piece
-                        lifted_piece.cords = (pos[0] - 48, pos[1] - 48)
-                        print(lifted_piece.legal_moves(piece_list, occupied))
+                if occupied[get_square(pos)] != None and selected_piece == None: # selected a piece
+                    selected_piece = occupied[get_square(pos)]
+                    selected_piece.state = 'Lifted'
+                    selected_piece.cords = (pos[0] - 48, pos[1] - 48)
+                    print("possible moves: ", selected_piece.legal_moves(piece_list, occupied))
+                elif selected_piece != None and get_square(pos) == selected_piece.position:
+                    selected_piece.state = 'Lifted'
+                    selected_piece.cords = (pos[0] - 48, pos[1] - 48)
+                    print("possible moves: ", selected_piece.legal_moves(piece_list, occupied))
+
         elif event.type == pygame.MOUSEBUTTONUP:
             pos = pygame.mouse.get_pos()
             sq = get_square(pos)
-            if lifted_piece != None and sq != None:
-                if sq in lifted_piece.legal_moves(piece_list, occupied):
+            if selected_piece != None and sq != None:
+                if sq == selected_piece.position: # check for click to move
+                    selected_piece.state = 'Selected'
+                elif sq in selected_piece.legal_moves(piece_list, occupied): # check for drag to move
                     move.play()
-                    occupied[lifted_piece.position] = None
-                    occupied[sq] = lifted_piece
-                    lifted_piece.position = sq
-                lifted_piece.state = 'Down'
-                lifted_piece = None
-            elif lifted_piece != None:
-                lifted_piece.state = 'Down'
-                lifted_piece = None
+                    occupied[selected_piece.position] = None
+                    occupied[sq] = selected_piece
+                    selected_piece.position = sq
+                    selected_piece.state = 'Down'
+                    selected_piece = None
+                elif selected_piece.state == 'Lifted':
+                    selected_piece.state = 'Down'
+            elif selected_piece != None:
+                selected_piece.state = 'Down'
+                selected_piece = None
 
 pygame.quit()
