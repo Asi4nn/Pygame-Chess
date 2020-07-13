@@ -47,10 +47,11 @@ def setup():
     # pawns
     for i in range(8):
         piece_list.append(Piece("Pawn", "White", chr(ord('a') + i) + '2'))
-        # screen.blit(w_Pawn, (16+96*i, 16+96*6))
+        occupied[chr(ord('a') + i) + '2'] = piece_list[-1]
 
     for i in range(8):
         piece_list.append(Piece("Pawn", "Black", chr(ord('a') + i) + '7'))
+        occupied[chr(ord('a') + i) + '7'] = piece_list[-1]
 
     # bishops
     piece_list.append(Piece("Bishop", "White", 'c1'))
@@ -170,9 +171,8 @@ while inUse:
             pos = pygame.mouse.get_pos()
             sq = get_square(pos)
             if lifted_piece != None and sq != None:
-                if sq != lifted_piece.position:
+                if sq in lifted_piece.legal_moves(piece_list, occupied):
                     move.play()
-                if occupied[sq] == None:
                     occupied[lifted_piece.position] = None
                     occupied[sq] = lifted_piece
                     lifted_piece.position = sq

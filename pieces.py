@@ -116,6 +116,7 @@ class Piece(object):
                     legal.append(dia2)
 
         elif self.type == 'Bishop':
+            # NOTE: REWORK THIS LATER TO BE LESS UGLY
             diagonal = 1
             paths = [True, True, True, True] # top left, top right, bottom right, bottom left
             # checks all diagonals that are 'diagonal' units away from the position
@@ -178,7 +179,28 @@ class Piece(object):
                 diagonal += 1
 
         elif self.type == 'Knight':
-            pass
+            # manually check the 8 squares a knight could jump too
+            for i in [1, -1]:
+                for j in [1, -1]:
+                    dest = chr(ord(self.position[0]) + 2*i) + str(int(self.position[1]) + j)
+                    '''
+                    Checks these possible moves
+                       ↔
+                       |
+                       K
+                       |
+                       ↔
+                    '''
+                    if dest in occupied and (occupied[dest] == None or occupied[dest].colour != self.colour):
+                        legal.append(dest)
+
+                    dest = chr(ord(self.position[0]) + i) + str(int(self.position[1]) + 2*j)
+                    '''
+                    Checks these possible moves
+                    ↕ - K - ↕
+                    '''
+                    if dest in occupied and (occupied[dest] == None or occupied[dest].colour != self.colour):
+                        legal.append(dest)
 
         elif self.type == 'Rook':
             pass
@@ -190,3 +212,6 @@ class Piece(object):
             pass
 
         return legal
+
+        def move(self, dest_cords):
+            pass
