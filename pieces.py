@@ -3,7 +3,11 @@
 import pygame
 pygame.init()
 
+pygame.display.set_mode((800, 800))
+
 pieces = pygame.image.load("Pieces.png") # spritesheet of all pieces
+check_square = pygame.image.load("checked.png")
+check_square = pygame.transform.scale(check_square, (96, 96)).convert_alpha()
 
 # square names matched to their cords
 squares = {}
@@ -26,13 +30,17 @@ class Piece(object):
         self.cords = (0, 0)
 
 
-    def draw(self, screen, outline):
+    def draw(self, screen, outline, piece_list, occupied):
         if self.state == 'Down':
             screen.blit(self.image, squares[self.position])
         elif self.state == 'Selected':
             screen.blit(self.image, squares[self.position])
             screen.blit(outline, squares[self.position])
-        else:
+            for sq in self.legal_moves(piece_list, occupied):
+                screen.blit(outline, squares[sq])
+        elif self.state == 'Lifted':
+            for sq in self.legal_moves(piece_list, occupied):
+                screen.blit(outline, squares[sq])
             screen.blit(self.image, self.cords)
 
 
@@ -452,12 +460,25 @@ class King(Piece):
 
         legal += self.legal_castle(piece_list, occupied)
 
-        return legal
+        next_checker = []
+        for sq in legal:
+            original = self.position
+            self.position = sq
+            occupied[original] = None
+            new = occupied[sq]
+            occupied[sq] = self
+            if not self.in_check(piece_list, occupied):
+                next_checker.append(sq)
+            self.position = original
+            occupied[original] = self
+            occupied[sq] = new
+
+        return next_checker
 
 
     def legal_castle(self, piece_list, occupied):
         legal = []
-        if self.has_moved == False:
+        if self.has_moved == False and self.in_check(piece_list, occupied) == False:
             if str(type(occupied['a' + self.position[1]])) == "<class 'pieces.Rook'>" and occupied['a' + self.position[1]].has_moved == False: # queenside
                 valid = True # check the squares between the rook and king
                 for col in ['d', 'c', 'b']:
@@ -518,3 +539,29 @@ class King(Piece):
         occupied[self.position] = self
         self.state = 'Down'
         self.update_squares_around()
+
+
+    def in_check(self, piece_list, occupied):
+        '''
+        Returns whether the king is in check or not
+        '''
+        for piece in piece_list:
+            if piece.colour != self.colour and str(type(piece)) != "<class 'pieces.King'>" and self.position in piece.legal_moves(piece_list, occupied):
+                return True
+        return False
+
+
+    def draw(self, screen, outline, piece_list, occupied):
+        if self.in_check(piece_list, occupied):
+            screen.blit(check_square, squares[self.position])
+        if self.state == 'Down':
+            screen.blit(self.image, squares[self.position])
+        elif self.state == 'Selected':
+            screen.blit(self.image, squares[self.position])
+            screen.blit(outline, squares[self.position])
+            for sq in self.legal_moves(piece_list, occupied):
+                screen.blit(outline, squares[sq])
+        elif self.state == 'Lifted':
+            for sq in self.legal_moves(piece_list, occupied):
+                screen.blit(outline, squares[sq])
+            screen.blit(self.image, self.cords)

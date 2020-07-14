@@ -20,7 +20,6 @@ circle = pygame.image.load("circle.png")
 circle = pygame.transform.scale(circle, (96, 96)).convert_alpha()
 circle.fill((255, 255, 255, 100), None, pygame.BLEND_RGBA_MULT)
 
-
 squares = {} # square names matched to their cords
 occupied = {}
 for i in range(1, 9):
@@ -124,20 +123,23 @@ def get_square(cords):
     return col + row
 
 
-def drawWindow(window, piece_list):
+def drawWindow(screen, piece_list):
     global board, pieces
 
     # draw the board
     board = pygame.transform.scale(board, (WIDTH, HEIGHT))
     screen.blit(board, (0,0))
 
-    # draw pieces
-    for piece in piece_list:
-        piece.draw(screen, circle)
 
-    if selected_piece != None:
-        for sq in selected_piece.legal_moves(piece_list, occupied):
-            screen.blit(circle, squares[sq])
+    # draw pieces
+    lifted = None
+    for piece in piece_list:
+        if piece != selected_piece:
+            piece.draw(screen, circle, piece_list, occupied)
+        else:
+            lifted = piece
+    if lifted != None: # draw lifted piece last so that it is at the front
+        lifted.draw(screen, circle, piece_list, occupied)
 
     pygame.display.update()
 
@@ -175,6 +177,7 @@ while inUse:
                     if occupied[sq] != None:
                         selected_piece = occupied[sq]
                         selected_piece.state = 'Lifted'
+                        selected_piece.cords = (pos[0] - 48, pos[1] - 48)
                     else:
                         selected_piece = None
 
@@ -188,7 +191,7 @@ while inUse:
                 elif sq in selected_piece.legal_moves(piece_list, occupied): # check for drag to move
                     selected_piece.move(sq, piece_list, occupied)
                     selected_piece = None
-                elif selected_piece.state == 'Lifted':
+                elif selected_piece.state == 'Lifted': # unselected if illegal move
                     selected_piece.state = 'Down'
             elif selected_piece != None:
                 selected_piece.state = 'Down'
