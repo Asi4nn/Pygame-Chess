@@ -32,7 +32,8 @@ class Piece(object):
 
 
     def move(self, dest):
-        pass
+        self.position = dest
+        self.state = 'Down'
 
 
 class Pawn(Piece):
@@ -410,3 +411,17 @@ class King(Piece):
                             legal.append(dest)
 
         return legal
+
+
+    def update_squares_around(self):
+        self.around = []
+        for i in range(-1, 2):
+            for j in range(-1, 2):
+                if i != 0 or j != 0:
+                    self.around.append(chr(ord(self.position[0]) + i) + str(int(self.position[1]) + j))
+
+
+    def move(self, dest):
+        self.position = dest
+        self.state = 'Down'
+        self.update_squares_around()

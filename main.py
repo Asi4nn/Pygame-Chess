@@ -139,11 +139,16 @@ def drawWindow(window, piece_list):
     for piece in piece_list:
         piece.draw(screen, circle)
 
+    if selected_piece != None:
+        for sq in selected_piece.legal_moves(piece_list, occupied):
+            screen.blit(circle, squares[sq])
+
     pygame.display.update()
 
 
 piece_list = setup()
 selected_piece = None
+turn = 'White'
 
 inUse = True
 while inUse:
@@ -162,20 +167,20 @@ while inUse:
                 inUse = False
         elif event.type == pygame.MOUSEBUTTONDOWN:
             pos = pygame.mouse.get_pos()
+            sq = get_square(pos)
             if pygame.mouse.get_pressed()[0]:
-                if occupied[get_square(pos)] != None and selected_piece == None: # select a piece
-                    if selected_piece != None:
-                        selected_piece.state = 'Down'
-                    selected_piece = occupied[get_square(pos)]
+                if sq != None and occupied[sq] != None and selected_piece == None: # pick up a piece when none are selected
+                    selected_piece = occupied[sq]
                     selected_piece.state = 'Lifted'
                     selected_piece.cords = (pos[0] - 48, pos[1] - 48)
                     print("possible moves: ", selected_piece.legal_moves(piece_list, occupied))
-                elif selected_piece != None and get_square(pos) == selected_piece.position:
-                    selected_piece.state = 'Lifted'
-                    selected_piece.cords = (pos[0] - 48, pos[1] - 48)
-                    print("possible moves: ", selected_piece.legal_moves(piece_list, occupied))
-                elif selected_piece != None and get_square(pos) in selected_piece.legal_moves(piece_list, occupied):
-                    # use move function when made
+                elif sq != None and selected_piece != None and sq not in selected_piece.legal_moves(piece_list, occupied): # click a invalid square with a selected piece
+                    selected_piece.state = 'Down'
+                    if occupied[sq] != None:
+                        selected_piece = occupied[sq]
+                        selected_piece.state = 'Lifted'
+                    else:
+                        selected_piece = None
 
 
         elif event.type == pygame.MOUSEBUTTONUP:
@@ -188,8 +193,7 @@ while inUse:
                     move.play()
                     occupied[selected_piece.position] = None
                     occupied[sq] = selected_piece
-                    selected_piece.position = sq
-                    selected_piece.state = 'Down'
+                    selected_piece.move(sq)
                     selected_piece = None
                 elif selected_piece.state == 'Lifted':
                     selected_piece.state = 'Down'
