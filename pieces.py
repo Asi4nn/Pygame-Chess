@@ -21,12 +21,12 @@ class Piece(object):
         self.cords = (0, 0)
 
 
-    def draw(self, screen, circle):
+    def draw(self, screen, outline):
         if self.state == 'Down':
             screen.blit(self.image, squares[self.position])
         elif self.state == 'Selected':
             screen.blit(self.image, squares[self.position])
-            screen.blit(circle, squares[self.position])
+            screen.blit(outline, squares[self.position])
         else:
             screen.blit(self.image, self.cords)
 

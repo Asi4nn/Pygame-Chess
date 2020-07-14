@@ -18,8 +18,7 @@ board = pygame.image.load("Board.png")
 pieces = pygame.image.load("Pieces.png") # spritesheet of all pieces
 circle = pygame.image.load("circle.png")
 circle = pygame.transform.scale(circle, (96, 96)).convert_alpha()
-circle.set_alpha(10)
-
+circle.fill((255, 255, 255, 100), None, pygame.BLEND_RGBA_MULT)
 # sounds
 move = pygame.mixer.Sound("Move.wav")
 capture = pygame.mixer.Sound("Capture.wav")
@@ -164,7 +163,9 @@ while inUse:
         elif event.type == pygame.MOUSEBUTTONDOWN:
             pos = pygame.mouse.get_pos()
             if pygame.mouse.get_pressed()[0]:
-                if occupied[get_square(pos)] != None and selected_piece == None: # selected a piece
+                if occupied[get_square(pos)] != None and selected_piece == None: # select a piece
+                    if selected_piece != None:
+                        selected_piece.state = 'Down'
                     selected_piece = occupied[get_square(pos)]
                     selected_piece.state = 'Lifted'
                     selected_piece.cords = (pos[0] - 48, pos[1] - 48)
@@ -173,6 +174,9 @@ while inUse:
                     selected_piece.state = 'Lifted'
                     selected_piece.cords = (pos[0] - 48, pos[1] - 48)
                     print("possible moves: ", selected_piece.legal_moves(piece_list, occupied))
+                elif selected_piece != None and get_square(pos) in selected_piece.legal_moves(piece_list, occupied):
+                    # use move function when made
+
 
         elif event.type == pygame.MOUSEBUTTONUP:
             pos = pygame.mouse.get_pos()
