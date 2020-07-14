@@ -290,12 +290,15 @@ class Rook(Piece):
         self.state = 'Down'
 
 
-    def castle(self):
+    def castle(self, occupied):
+        occupied[self.position] = None
         if self.position[0] == 'a':
             self.position = 'd' + self.position[1]
         elif self.position[0] == 'h':
             self.position = 'f' + self.position[1]
-            
+
+        occupied[self.position] = self
+
 
 class Queen(Piece):
 
@@ -477,7 +480,7 @@ class King(Piece):
                         valid = False
                         break
                     for piece in piece_list:
-                        if piece.colour != self.colour and col + self.position[1] in piece.legal_moves(piece_list, occupied):
+                        if piece.colour != self.colour and str(type(piece)) != "<class 'pieces.King'>" and col + self.position[1] in piece.legal_moves(piece_list, occupied):
                             valid = False
                             break
                     if valid == False:
@@ -500,11 +503,10 @@ class King(Piece):
         if occupied[dest] == None:
             move.play()
             if dest in self.legal_castle(piece_list, occupied):
-
                 if dest[0] == 'c':
-                    occupied['a' + dest[1]].castle()
+                    occupied['a' + dest[1]].castle(occupied)
                 elif dest[0] == 'g':
-                    occupied['h' + dest[1]].castle()
+                    occupied['h' + dest[1]].castle(occupied)
         else:
             capture.play()
             piece_list.remove(occupied[dest])
