@@ -12,6 +12,11 @@ for i in range(1, 9):
         squares[file + str(i)] = (16 + 96*j, 800 - 16 - 96*i)
 
 
+# sounds
+move = pygame.mixer.Sound("Move.wav")
+capture = pygame.mixer.Sound("Capture.wav")
+
+
 class Piece(object):
 
     def __init__(self, colour, position):
@@ -31,9 +36,19 @@ class Piece(object):
             screen.blit(self.image, self.cords)
 
 
-    def move(self, dest):
+    def move(self, dest, piece_list, occupied):
+        if occupied[dest] == None:
+            move.play()
+        else:
+            capture.play()
+            piece_list.remove(occupied[dest])
+            occupied[dest] = self
+
+        occupied[self.position] = None
         self.position = dest
+        occupied[self.position] = self
         self.state = 'Down'
+
 
 
 class Pawn(Piece):
@@ -260,6 +275,28 @@ class Rook(Piece):
         return legal
 
 
+    def move(self, dest, piece_list, occupied):
+        if occupied[dest] == None:
+            move.play()
+        else:
+            capture.play()
+            piece_list.remove(occupied[dest])
+            occupied[dest] = self
+
+        self.has_moved = True
+        occupied[self.position] = None
+        self.position = dest
+        occupied[self.position] = self
+        self.state = 'Down'
+
+
+    def castle(self):
+        if self.position[0] == 'a':
+            self.position = 'd' + self.position[1]
+        elif self.position[0] == 'h':
+            self.position = 'f' + self.position[1]
+            
+
 class Queen(Piece):
 
     def __init__(self, colour, position):
@@ -410,6 +447,44 @@ class King(Piece):
                         if not square_attacked:
                             legal.append(dest)
 
+        legal += self.legal_castle(piece_list, occupied)
+
+        return legal
+
+
+    def legal_castle(self, piece_list, occupied):
+        legal = []
+        if self.has_moved == False:
+            if str(type(occupied['a' + self.position[1]])) == "<class 'pieces.Rook'>" and occupied['a' + self.position[1]].has_moved == False: # queenside
+                valid = True # check the squares between the rook and king
+                for col in ['d', 'c', 'b']:
+                    if occupied[col + self.position[1]] != None:
+                        valid = False
+                        break
+                    for piece in piece_list:
+                        if piece.colour != self.colour and col + self.position[1] in piece.legal_moves(piece_list, occupied):
+                            valid = False
+                            break
+                    if valid == False:
+                        break
+                if valid:
+                    legal.append('c' + self.position[1])
+            if str(type(occupied['h' + self.position[1]])) == "<class 'pieces.Rook'>" and occupied['h' + self.position[1]].has_moved == False and occupied['h' + self.position[1]].colour == self.colour: #kingside
+
+                valid = True # check the squares between the rook and king
+                for col in ['f', 'g']:
+                    if occupied[col + self.position[1]] != None:
+                        valid = False
+                        break
+                    for piece in piece_list:
+                        if piece.colour != self.colour and col + self.position[1] in piece.legal_moves(piece_list, occupied):
+                            valid = False
+                            break
+                    if valid == False:
+                        break
+                if valid:
+                    legal.append('g' + self.position[1])
+
         return legal
 
 
@@ -421,7 +496,23 @@ class King(Piece):
                     self.around.append(chr(ord(self.position[0]) + i) + str(int(self.position[1]) + j))
 
 
-    def move(self, dest):
+    def move(self, dest, piece_list, occupied):
+        if occupied[dest] == None:
+            move.play()
+            if dest in self.legal_castle(piece_list, occupied):
+
+                if dest[0] == 'c':
+                    occupied['a' + dest[1]].castle()
+                elif dest[0] == 'g':
+                    occupied['h' + dest[1]].castle()
+        else:
+            capture.play()
+            piece_list.remove(occupied[dest])
+            occupied[dest] = self
+
+        self.has_moved = True
+        occupied[self.position] = None
         self.position = dest
+        occupied[self.position] = self
         self.state = 'Down'
         self.update_squares_around()

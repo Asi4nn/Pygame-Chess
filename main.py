@@ -19,10 +19,6 @@ pieces = pygame.image.load("Pieces.png") # spritesheet of all pieces
 circle = pygame.image.load("circle.png")
 circle = pygame.transform.scale(circle, (96, 96)).convert_alpha()
 circle.fill((255, 255, 255, 100), None, pygame.BLEND_RGBA_MULT)
-# sounds
-move = pygame.mixer.Sound("Move.wav")
-capture = pygame.mixer.Sound("Capture.wav")
-
 
 
 squares = {} # square names matched to their cords
@@ -173,7 +169,7 @@ while inUse:
                     selected_piece = occupied[sq]
                     selected_piece.state = 'Lifted'
                     selected_piece.cords = (pos[0] - 48, pos[1] - 48)
-                    print("possible moves: ", selected_piece.legal_moves(piece_list, occupied))
+                    # print("possible moves: ", selected_piece.legal_moves(piece_list, occupied))
                 elif sq != None and selected_piece != None and sq not in selected_piece.legal_moves(piece_list, occupied): # click a invalid square with a selected piece
                     selected_piece.state = 'Down'
                     if occupied[sq] != None:
@@ -186,14 +182,11 @@ while inUse:
         elif event.type == pygame.MOUSEBUTTONUP:
             pos = pygame.mouse.get_pos()
             sq = get_square(pos)
-            if selected_piece != None and sq != None:
+            if selected_piece != None and sq != None: # check if a piece is selected
                 if sq == selected_piece.position: # check for click to move
                     selected_piece.state = 'Selected'
                 elif sq in selected_piece.legal_moves(piece_list, occupied): # check for drag to move
-                    move.play()
-                    occupied[selected_piece.position] = None
-                    occupied[sq] = selected_piece
-                    selected_piece.move(sq)
+                    selected_piece.move(sq, piece_list, occupied)
                     selected_piece = None
                 elif selected_piece.state == 'Lifted':
                     selected_piece.state = 'Down'
