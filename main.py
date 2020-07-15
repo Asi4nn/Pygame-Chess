@@ -167,14 +167,14 @@ while inUse:
             pos = pygame.mouse.get_pos()
             sq = get_square(pos)
             if pygame.mouse.get_pressed()[0]:
-                if sq != None and occupied[sq] != None and selected_piece == None: # pick up a piece when none are selected
+                if sq != None and occupied[sq] != None and selected_piece == None and occupied[sq].colour == turn: # pick up a piece when none are selected
                     selected_piece = occupied[sq]
                     selected_piece.state = 'Lifted'
                     selected_piece.cords = (pos[0] - 48, pos[1] - 48)
                     # print("possible moves: ", selected_piece.legal_moves(piece_list, occupied))
-                elif sq != None and selected_piece != None and sq not in selected_piece.legal_moves(piece_list, occupied): # click a invalid square with a selected piece
+                elif sq != None and selected_piece != None and sq not in selected_piece.legal_moves(piece_list, occupied): # select a different piece
                     selected_piece.state = 'Down'
-                    if occupied[sq] != None:
+                    if occupied[sq] != None and occupied[sq].colour == turn:
                         selected_piece = occupied[sq]
                         selected_piece.state = 'Lifted'
                         selected_piece.cords = (pos[0] - 48, pos[1] - 48)
@@ -191,6 +191,10 @@ while inUse:
                 elif sq in selected_piece.legal_moves(piece_list, occupied): # check for drag to move
                     selected_piece.move(sq, piece_list, occupied)
                     selected_piece = None
+                    if turn == 'White':
+                        turn = 'Black'
+                    else:
+                        turn = 'White'
                 elif selected_piece.state == 'Lifted': # unselected if illegal move
                     selected_piece.state = 'Down'
             elif selected_piece != None:
