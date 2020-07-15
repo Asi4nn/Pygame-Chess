@@ -58,6 +58,20 @@ class Piece(object):
         self.state = 'Down'
 
 
+    def move_capture(self, dest, piece_list, occupied):
+        '''
+        Returns the captured piece in a possible move
+        '''
+        if occupied[dest] != None:
+            captured = occupied[dest]
+            piece_list.remove(occupied[dest])
+            occupied[dest] = self
+
+        occupied[self.position] = None
+        self.position = dest
+        occupied[self.position] = self
+        return captured
+
 
 class Pawn(Piece):
 
@@ -111,7 +125,58 @@ class Pawn(Piece):
                 legal.append(dest)
 
 
+        next_checker = []
+        for sq in legal:
+            original = self.position
+            self.position = sq
+            occupied[original] = None
+            new = occupied[sq]
+            occupied[sq] = self
+            if new != None:
+                piece_list.remove(new)
+            for piece in piece_list:
+                if str(type(piece)) == "<class 'pieces.King'>" and piece.colour == self.colour:
+                    king = piece
+            if not king.in_check(piece_list, occupied):
+                next_checker.append(sq)
+            self.position = original
+            occupied[original] = self
+            occupied[sq] = new
+            if new != None:
+                piece_list.append(new)
+
+        return next_checker
+
+
+    def attacking_squares(self, piece_list, occupied):
+        '''
+        Returns the squares the piece is attacking
+        (Basically the legal moves func without checking the next move)
+        '''
+        legal = []
+        if self.colour == 'White':
+            if occupied[self.position[0] + str(int(self.position[1]) + 1)] == None:
+                legal.append(self.position[0] + str(int(self.position[1]) + 1))
+                # check if pawn is on starting square, if so it can move 2 squares forward
+                if self.position[1] == '2' and occupied[self.position[0] + str(int(self.position[1]) + 2)] == None:
+                    legal.append(self.position[0] + str(int(self.position[1]) + 2))
+
+        elif self.colour == 'Black':
+            if occupied[self.position[0] + str(int(self.position[1]) - 1)] == None:
+                legal.append(self.position[0] + str(int(self.position[1]) - 1))
+                # check if pawn is on starting square, if so it can move 2 squares forward
+                if self.position[1] == '7' and occupied[self.position[0] + str(int(self.position[1]) - 2)] == None:
+                    legal.append(self.position[0] + str(int(self.position[1]) - 2))
+
+        for dest in self.possible_captures():
+            if dest in occupied and occupied[dest] != None and occupied[dest].colour != self.colour:
+                legal.append(dest)
+
         return legal
+
+
+    def promote(self, piece_list, occupied):
+        # program pawn promoting
 
 
 class Bishop(Piece):
@@ -130,6 +195,75 @@ class Bishop(Piece):
     def legal_moves(self, piece_list, occupied):
         '''
         Returns a list of squares a piece can move to
+        '''
+        legal = []
+        diagonal = 1
+        paths = [True, True, True, True] # top left, top right, bottom right, bottom left
+        # checks all diagonals that are 'diagonal' units away from the position
+
+        while True in paths:
+            if paths[0]:
+                sq = chr(ord(self.position[0]) - diagonal) + str(int(self.position[1]) + diagonal)
+                if sq in occupied and (occupied[sq] == None or occupied[sq].colour != self.colour):
+                    legal.append(sq)
+                    if occupied[sq] != None:
+                        paths[0] = False
+                else:
+                    paths[0] = False
+            if paths[1]:
+                sq = chr(ord(self.position[0]) + diagonal) + str(int(self.position[1]) + diagonal)
+                if sq in occupied and (occupied[sq] == None or occupied[sq].colour != self.colour):
+                    legal.append(sq)
+                    if occupied[sq] != None:
+                        paths[1] = False
+                else:
+                    paths[1] = False
+            if paths[2]:
+                sq = chr(ord(self.position[0]) + diagonal) + str(int(self.position[1]) - diagonal)
+                if sq in occupied and (occupied[sq] == None or occupied[sq].colour != self.colour):
+                    legal.append(sq)
+                    if occupied[sq] != None:
+                        paths[2] = False
+                else:
+                    paths[2] = False
+            if paths[3]:
+                sq = chr(ord(self.position[0]) - diagonal) + str(int(self.position[1]) - diagonal)
+                if sq in occupied and (occupied[sq] == None or occupied[sq].colour != self.colour):
+                    legal.append(sq)
+                    if occupied[sq] != None:
+                        paths[3] = False
+                else:
+                    paths[3] = False
+
+            diagonal += 1
+
+        next_checker = []
+        for sq in legal:
+            original = self.position
+            self.position = sq
+            occupied[original] = None
+            new = occupied[sq]
+            occupied[sq] = self
+            if new != None:
+                piece_list.remove(new)
+            for piece in piece_list:
+                if str(type(piece)) == "<class 'pieces.King'>" and piece.colour == self.colour:
+                    king = piece
+            if not king.in_check(piece_list, occupied):
+                next_checker.append(sq)
+            self.position = original
+            occupied[original] = self
+            occupied[sq] = new
+            if new != None:
+                piece_list.append(new)
+
+        return next_checker
+
+
+    def attacking_squares(self, piece_list, occupied):
+        '''
+        Returns the squares the piece is attacking
+        (Basically the legal moves func without checking the next move)
         '''
         legal = []
         diagonal = 1
@@ -217,6 +351,59 @@ class Knight(Piece):
                 if dest in occupied and (occupied[dest] == None or occupied[dest].colour != self.colour):
                     legal.append(dest)
 
+        next_checker = []
+        for sq in legal:
+            original = self.position
+            self.position = sq
+            occupied[original] = None
+            new = occupied[sq]
+            occupied[sq] = self
+            if new != None:
+                piece_list.remove(new)
+            for piece in piece_list:
+                if str(type(piece)) == "<class 'pieces.King'>" and piece.colour == self.colour:
+                    king = piece
+            if not king.in_check(piece_list, occupied):
+                next_checker.append(sq)
+            self.position = original
+            occupied[original] = self
+            occupied[sq] = new
+            if new != None:
+                piece_list.append(new)
+
+        return next_checker
+
+
+    def attacking_squares(self, piece_list, occupied):
+        '''
+        Returns the squares the piece is attacking
+        (Basically the legal moves func without checking the next move)
+        '''
+        legal = []
+        # manually check the 8 squares a knight could jump too
+        for i in [1, -1]:
+            for j in [1, -1]:
+                dest = chr(ord(self.position[0]) + 2*i) + str(int(self.position[1]) + j)
+                '''
+                Checks these possible moves
+                   ↔
+                   |
+                   K
+                   |
+                   ↔
+                '''
+                if dest in occupied and (occupied[dest] == None or occupied[dest].colour != self.colour):
+                    legal.append(dest)
+
+                dest = chr(ord(self.position[0]) + i) + str(int(self.position[1]) + 2*j)
+                '''
+                Checks these possible moves
+                ↕ - K - ↕
+                '''
+                if dest in occupied and (occupied[dest] == None or occupied[dest].colour != self.colour):
+                    legal.append(dest)
+
+
         return legal
 
 
@@ -238,6 +425,75 @@ class Rook(Piece):
     def legal_moves(self, piece_list, occupied):
         '''
         Returns a list of squares a piece can move to
+        '''
+        legal = []
+        # similar to the bishop's movement
+        distance = 1
+        paths = [True, True, True, True] # left, right, up, down
+
+        while True in paths:
+            if paths[0]:
+                sq = chr(ord(self.position[0]) - distance) + self.position[1]
+                if sq in occupied and (occupied[sq] == None or occupied[sq].colour != self.colour):
+                    legal.append(sq)
+                    if occupied[sq] != None:
+                        paths[0] = False
+                else:
+                    paths[0] = False
+            if paths[1]:
+                sq = chr(ord(self.position[0]) + distance) + self.position[1]
+                if sq in occupied and (occupied[sq] == None or occupied[sq].colour != self.colour):
+                    legal.append(sq)
+                    if occupied[sq] != None:
+                        paths[1] = False
+                else:
+                    paths[1] = False
+            if paths[2]:
+                sq = self.position[0] + str(int(self.position[1]) + distance)
+                if sq in occupied and (occupied[sq] == None or occupied[sq].colour != self.colour):
+                    legal.append(sq)
+                    if occupied[sq] != None:
+                        paths[2] = False
+                else:
+                    paths[2] = False
+            if paths[3]:
+                sq = self.position[0] + str(int(self.position[1]) - distance)
+                if sq in occupied and (occupied[sq] == None or occupied[sq].colour != self.colour):
+                    legal.append(sq)
+                    if occupied[sq] != None:
+                        paths[3] = False
+                else:
+                    paths[3] = False
+
+            distance += 1
+
+        next_checker = []
+        for sq in legal:
+            original = self.position
+            self.position = sq
+            occupied[original] = None
+            new = occupied[sq]
+            occupied[sq] = self
+            if new != None:
+                piece_list.remove(new)
+            for piece in piece_list:
+                if str(type(piece)) == "<class 'pieces.King'>" and piece.colour == self.colour:
+                    king = piece
+            if not king.in_check(piece_list, occupied):
+                next_checker.append(sq)
+            self.position = original
+            occupied[original] = self
+            occupied[sq] = new
+            if new != None:
+                piece_list.append(new)
+
+        return next_checker
+
+
+    def attacking_squares(self, piece_list, occupied):
+        '''
+        Returns the squares the piece is attacking
+        (Basically the legal moves func without checking the next move)
         '''
         legal = []
         # similar to the bishop's movement
@@ -408,6 +664,115 @@ class Queen(Piece):
 
             distance += 1
 
+        next_checker = []
+        for sq in legal:
+            original = self.position
+            self.position = sq
+            occupied[original] = None
+            new = occupied[sq]
+            occupied[sq] = self
+            if new != None:
+                piece_list.remove(new)
+            for piece in piece_list:
+                if str(type(piece)) == "<class 'pieces.King'>" and piece.colour == self.colour:
+                    king = piece
+            if not king.in_check(piece_list, occupied):
+                next_checker.append(sq)
+            self.position = original
+            occupied[original] = self
+            occupied[sq] = new
+            if new != None:
+                piece_list.append(new)
+        return next_checker
+
+
+    def attacking_squares(self, piece_list, occupied):
+        '''
+        Returns the squares the piece is attacking
+        (Basically the legal moves func without checking the next move)
+        '''
+        legal = []
+        # combine bishop and rook movement
+
+        diagonal = 1
+        paths = [True, True, True, True] # top left, top right, bottom right, bottom left
+        # checks all diagonals that are 'diagonal' units away from the position
+
+        while True in paths:
+            if paths[0]:
+                sq = chr(ord(self.position[0]) - diagonal) + str(int(self.position[1]) + diagonal)
+                if sq in occupied and (occupied[sq] == None or occupied[sq].colour != self.colour):
+                    legal.append(sq)
+                    if occupied[sq] != None:
+                        paths[0] = False
+                else:
+                    paths[0] = False
+            if paths[1]:
+                sq = chr(ord(self.position[0]) + diagonal) + str(int(self.position[1]) + diagonal)
+                if sq in occupied and (occupied[sq] == None or occupied[sq].colour != self.colour):
+                    legal.append(sq)
+                    if occupied[sq] != None:
+                        paths[1] = False
+                else:
+                    paths[1] = False
+            if paths[2]:
+                sq = chr(ord(self.position[0]) + diagonal) + str(int(self.position[1]) - diagonal)
+                if sq in occupied and (occupied[sq] == None or occupied[sq].colour != self.colour):
+                    legal.append(sq)
+                    if occupied[sq] != None:
+                        paths[2] = False
+                else:
+                    paths[2] = False
+            if paths[3]:
+                sq = chr(ord(self.position[0]) - diagonal) + str(int(self.position[1]) - diagonal)
+                if sq in occupied and (occupied[sq] == None or occupied[sq].colour != self.colour):
+                    legal.append(sq)
+                    if occupied[sq] != None:
+                        paths[3] = False
+                else:
+                    paths[3] = False
+
+            diagonal += 1
+
+        distance = 1
+        paths = [True, True, True, True] # left, right, up, down
+
+        while True in paths:
+            if paths[0]:
+                sq = chr(ord(self.position[0]) - distance) + self.position[1]
+                if sq in occupied and (occupied[sq] == None or occupied[sq].colour != self.colour):
+                    legal.append(sq)
+                    if occupied[sq] != None:
+                        paths[0] = False
+                else:
+                    paths[0] = False
+            if paths[1]:
+                sq = chr(ord(self.position[0]) + distance) + self.position[1]
+                if sq in occupied and (occupied[sq] == None or occupied[sq].colour != self.colour):
+                    legal.append(sq)
+                    if occupied[sq] != None:
+                        paths[1] = False
+                else:
+                    paths[1] = False
+            if paths[2]:
+                sq = self.position[0] + str(int(self.position[1]) + distance)
+                if sq in occupied and (occupied[sq] == None or occupied[sq].colour != self.colour):
+                    legal.append(sq)
+                    if occupied[sq] != None:
+                        paths[2] = False
+                else:
+                    paths[2] = False
+            if paths[3]:
+                sq = self.position[0] + str(int(self.position[1]) - distance)
+                if sq in occupied and (occupied[sq] == None or occupied[sq].colour != self.colour):
+                    legal.append(sq)
+                    if occupied[sq] != None:
+                        paths[3] = False
+                else:
+                    paths[3] = False
+
+            distance += 1
+
         return legal
 
 
@@ -486,7 +851,7 @@ class King(Piece):
                         valid = False
                         break
                     for piece in piece_list:
-                        if piece.colour != self.colour and col + self.position[1] in piece.legal_moves(piece_list, occupied):
+                        if piece.colour != self.colour and str(type(piece)) != "<class 'pieces.King'>" and col + self.position[1] in piece.attacking_squares(piece_list, occupied):
                             valid = False
                             break
                     if valid == False:
@@ -501,7 +866,7 @@ class King(Piece):
                         valid = False
                         break
                     for piece in piece_list:
-                        if piece.colour != self.colour and str(type(piece)) != "<class 'pieces.King'>" and col + self.position[1] in piece.legal_moves(piece_list, occupied):
+                        if piece.colour != self.colour and str(type(piece)) != "<class 'pieces.King'>" and col + self.position[1] in piece.attacking_squares(piece_list, occupied):
                             valid = False
                             break
                     if valid == False:
@@ -546,7 +911,7 @@ class King(Piece):
         Returns whether the king is in check or not
         '''
         for piece in piece_list:
-            if piece.colour != self.colour and str(type(piece)) != "<class 'pieces.King'>" and self.position in piece.legal_moves(piece_list, occupied):
+            if piece.colour != self.colour and str(type(piece)) != "<class 'pieces.King'>" and self.position in piece.attacking_squares(piece_list, occupied):
                 return True
         return False
 
