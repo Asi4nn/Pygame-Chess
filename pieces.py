@@ -176,7 +176,7 @@ class Pawn(Piece):
 
 
     def promote(self, piece_list, occupied):
-        # program pawn promoting
+        pass
 
 
 class Bishop(Piece):

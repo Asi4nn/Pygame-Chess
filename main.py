@@ -123,6 +123,16 @@ def get_square(cords):
     return col + row
 
 
+def is_checkmate(piece_list, colour):
+    '''
+    Returns if colour is checkmated
+    '''
+    for piece in piece_list:
+        if piece.colour == colour and piece.legal_moves(piece_list, occupied) != []:
+            return False
+    return True
+
+
 def drawWindow(screen, piece_list):
     global board, pieces
 
@@ -195,6 +205,12 @@ while inUse:
                         turn = 'Black'
                     else:
                         turn = 'White'
+                    if is_checkmate(piece_list, turn):
+                        if turn == 'White':
+                            print("Black wins")
+                        else:
+                            print("White wins")
+                        inUse = False
                 elif selected_piece.state == 'Lifted': # unselected if illegal move
                     selected_piece.state = 'Down'
             elif selected_piece != None:
