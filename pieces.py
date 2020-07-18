@@ -154,14 +154,14 @@ class Pawn(Piece):
         (Basically the legal moves func without checking the next move)
         '''
         legal = []
-        if self.colour == 'White':
+        if self.colour == 'White' and self.position[1] != '8':
             if occupied[self.position[0] + str(int(self.position[1]) + 1)] == None:
                 legal.append(self.position[0] + str(int(self.position[1]) + 1))
                 # check if pawn is on starting square, if so it can move 2 squares forward
                 if self.position[1] == '2' and occupied[self.position[0] + str(int(self.position[1]) + 2)] == None:
                     legal.append(self.position[0] + str(int(self.position[1]) + 2))
 
-        elif self.colour == 'Black':
+        elif self.colour == 'Black' and self.position[1] != '1':
             if occupied[self.position[0] + str(int(self.position[1]) - 1)] == None:
                 legal.append(self.position[0] + str(int(self.position[1]) - 1))
                 # check if pawn is on starting square, if so it can move 2 squares forward
@@ -176,7 +176,14 @@ class Pawn(Piece):
 
 
     def promote(self, piece_list, occupied):
-        pass
+        '''
+        Check conditions of promotion and promotes as needed
+        '''
+        print(self.colour, self.position)
+        if (self.colour == 'White' and self.position[1] == '8') or (self.colour == 'Black' and self.position[1] == '1'):
+            queen = Queen(self.colour, self.position)
+            piece_list[piece_list.index(self)] = queen
+            occupied[self.position] = queen
 
 
 class Bishop(Piece):

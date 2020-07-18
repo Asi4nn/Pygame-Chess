@@ -5,7 +5,7 @@ from pieces import *
 pygame.mixer.pre_init(22050, -16, 2, 1024)
 pygame.init()
 pygame.mixer.quit()
-pygame.mixer.init(22050, -16, 2, 1024)
+pygame.mixer.init(22050, -16, 2, 1024) # for some reason you have to init the mixer twice to not have sound delay
 
 WIDTH = 800
 HEIGHT = 800
@@ -126,18 +126,31 @@ def get_square(cords):
 def is_checkmate(piece_list, colour):
     '''
     Returns if colour is checkmated
+    Returns 'stalemate' if stalemate
     '''
     for piece in piece_list:
         if piece.colour == colour and piece.legal_moves(piece_list, occupied) != []:
             return False
-    return True
+        if str(type(piece)) == "<class 'pieces.King'>" and piece.colour == colour:
+            king = piece
+    if king.in_check(piece_list, occupied):
+        return True
+    else:
+        return 'stalemate'
+
+
+def printText(text, font, canvas, x, y):
+    theText = font.render(text, 1, (0,0,0))
+    textbox = theText.get_rect()
+    textbox.center = (x, y)
+    canvas.blit(theText, textbox)
 
 
 def drawWindow(screen, piece_list):
     global board, pieces
 
     # draw the board
-    board = pygame.transform.scale(board, (WIDTH, HEIGHT))
+    board = pygame.transform.scale(board, (800, 800))
     screen.blit(board, (0,0))
 
 
@@ -157,6 +170,7 @@ def drawWindow(screen, piece_list):
 piece_list = setup()
 selected_piece = None
 turn = 'White'
+game_over = False
 
 inUse = True
 while inUse:
@@ -200,16 +214,23 @@ while inUse:
                     selected_piece.state = 'Selected'
                 elif sq in selected_piece.legal_moves(piece_list, occupied): # check for drag to move
                     selected_piece.move(sq, piece_list, occupied)
+                    # check for pawn promotion
+                    if str(type(selected_piece)) == "<class 'pieces.Pawn'>":
+                        selected_piece.promote(piece_list, occupied)
+
                     selected_piece = None
                     if turn == 'White':
                         turn = 'Black'
                     else:
                         turn = 'White'
-                    if is_checkmate(piece_list, turn):
+                    if is_checkmate(piece_list, turn) == True:
                         if turn == 'White':
                             print("Black wins")
                         else:
                             print("White wins")
+                        inUse = False
+                    elif is_checkmate(piece_list, turn) == 'stalemate':
+                        print("Stalemate, no possible moves")
                         inUse = False
                 elif selected_piece.state == 'Lifted': # unselected if illegal move
                     selected_piece.state = 'Down'
