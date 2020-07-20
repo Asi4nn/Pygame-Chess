@@ -5,8 +5,8 @@ pygame.init()
 
 pygame.display.set_mode((800, 800))
 
-pieces = pygame.image.load("Pieces.png") # spritesheet of all pieces
-check_square = pygame.image.load("checked.png")
+pieces = pygame.image.load("Images\Pieces.png") # spritesheet of all pieces
+check_square = pygame.image.load("Images\checked.png")
 check_square = pygame.transform.scale(check_square, (96, 96)).convert_alpha()
 
 # square names matched to their cords
@@ -17,8 +17,8 @@ for i in range(1, 9):
 
 
 # sounds
-move = pygame.mixer.Sound("Move.wav")
-capture = pygame.mixer.Sound("Capture.wav")
+move = pygame.mixer.Sound("Sounds\Move.wav")
+capture = pygame.mixer.Sound("Sounds\Capture.wav")
 
 
 class Piece(object):
@@ -179,7 +179,6 @@ class Pawn(Piece):
         '''
         Check conditions of promotion and promotes as needed
         '''
-        print(self.colour, self.position)
         if (self.colour == 'White' and self.position[1] == '8') or (self.colour == 'Black' and self.position[1] == '1'):
             queen = Queen(self.colour, self.position)
             piece_list[piece_list.index(self)] = queen

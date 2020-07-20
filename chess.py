@@ -16,9 +16,9 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption('Pygame Chess')
 
 # images
-board = pygame.image.load("Board.png")
-pieces = pygame.image.load("Pieces.png") # spritesheet of all pieces
-circle = pygame.image.load("circle.png")
+board = pygame.image.load("Images\Board.png")
+pieces = pygame.image.load("Images\Pieces.png") # spritesheet of all pieces
+circle = pygame.image.load("Images\circle.png")
 circle = pygame.transform.scale(circle, (96, 96)).convert_alpha()
 circle.fill((255, 255, 255, 100), None, pygame.BLEND_RGBA_MULT)
 
