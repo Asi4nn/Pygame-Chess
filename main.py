@@ -10,6 +10,8 @@ pygame.mixer.init(22050, -16, 2, 1024) # for some reason you have to init the mi
 WIDTH = 800
 HEIGHT = 800
 
+calibri = pygame.font.SysFont('calibri', 100)
+
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption('Pygame Chess')
 
@@ -139,8 +141,8 @@ def is_checkmate(piece_list, colour):
         return 'stalemate'
 
 
-def printText(text, font, canvas, x, y):
-    theText = font.render(text, 1, (0,0,0))
+def printText(text, font, canvas, x, y, colour):
+    theText = font.render(text, 1, colour)
     textbox = theText.get_rect()
     textbox.center = (x, y)
     canvas.blit(theText, textbox)
@@ -164,6 +166,11 @@ def drawWindow(screen, piece_list):
     if lifted != None: # draw lifted piece last so that it is at the front
         lifted.draw(screen, circle, piece_list, occupied)
 
+    if winner != None and winner != 'stalemate':
+        printText(winner + " wins", calibri, screen, 400, 400, (255, 0, 0))
+    elif winner != None:
+        printText('Stalemate', calibri, screen, 400, 400, (255, 0, 0))
+
     pygame.display.update()
 
 
@@ -171,6 +178,7 @@ piece_list = setup()
 selected_piece = None
 turn = 'White'
 game_over = False
+winner = None
 
 inUse = True
 while inUse:
@@ -191,11 +199,11 @@ while inUse:
             pos = pygame.mouse.get_pos()
             sq = get_square(pos)
             if pygame.mouse.get_pressed()[0]:
-                if sq != None and occupied[sq] != None and selected_piece == None and occupied[sq].colour == turn: # pick up a piece when none are selected
+                # pick up a piece when none are selected
+                if sq != None and occupied[sq] != None and selected_piece == None and occupied[sq].colour == turn:
                     selected_piece = occupied[sq]
                     selected_piece.state = 'Lifted'
                     selected_piece.cords = (pos[0] - 48, pos[1] - 48)
-                    # print("possible moves: ", selected_piece.legal_moves(piece_list, occupied))
                 elif sq != None and selected_piece != None and sq not in selected_piece.legal_moves(piece_list, occupied): # select a different piece
                     selected_piece.state = 'Down'
                     if occupied[sq] != None and occupied[sq].colour == turn:
@@ -212,7 +220,8 @@ while inUse:
             if selected_piece != None and sq != None: # check if a piece is selected
                 if sq == selected_piece.position: # check for click to move
                     selected_piece.state = 'Selected'
-                elif sq in selected_piece.legal_moves(piece_list, occupied): # check for drag to move
+                # check for drag to move
+                elif sq in selected_piece.legal_moves(piece_list, occupied):
                     selected_piece.move(sq, piece_list, occupied)
                     # check for pawn promotion
                     if str(type(selected_piece)) == "<class 'pieces.Pawn'>":
@@ -225,14 +234,13 @@ while inUse:
                         turn = 'White'
                     if is_checkmate(piece_list, turn) == True:
                         if turn == 'White':
-                            print("Black wins")
+                            winner = 'Black'
                         else:
-                            print("White wins")
-                        inUse = False
+                            winner = 'White'
                     elif is_checkmate(piece_list, turn) == 'stalemate':
-                        print("Stalemate, no possible moves")
-                        inUse = False
-                elif selected_piece.state == 'Lifted': # unselected if illegal move
+                        winner = 'stalemate'
+                # unselected if illegal move
+                elif selected_piece.state == 'Lifted':
                     selected_piece.state = 'Down'
             elif selected_piece != None:
                 selected_piece.state = 'Down'
