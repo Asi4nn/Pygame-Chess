@@ -22,6 +22,9 @@ capture = pygame.mixer.Sound("Sounds\Capture.wav")
 
 
 class Piece(object):
+    '''
+    Parent class for all piece types
+    '''
 
     def __init__(self, colour, position):
         self.colour = colour
