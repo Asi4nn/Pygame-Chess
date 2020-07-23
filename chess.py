@@ -1,7 +1,9 @@
-# main.py
+# chess.py
 
 import pygame
 from pieces import *
+from button import *
+from board import *
 pygame.mixer.pre_init(22050, -16, 2, 1024)
 pygame.init()
 pygame.mixer.quit()
@@ -103,6 +105,11 @@ def get_square(cords):
     '''
     Returns the square that is at the given cords
     Note: cords on the border returns None
+    NOTE: This func only works for an 800x800 board
+    Reminder to change this later:
+        2% of the boards width and height are made by the border,
+        so that can be used to make each square about 12% of the width and
+        height of the board size
     '''
     for cord in cords:
         if cord >= 784 or cord <= 16:
@@ -166,12 +173,84 @@ def drawWindow(screen, piece_list):
     if lifted != None: # draw lifted piece last so that it is at the front
         lifted.draw(screen, circle, piece_list, occupied)
 
-    if winner != None and winner != 'stalemate':
-        printText(winner + " wins", calibri, screen, 400, 400, (255, 0, 0))
-    elif winner != None:
-        printText('Stalemate', calibri, screen, 400, 400, (255, 0, 0))
+    if winner != None:
+        if winner != 'stalemate':
+            printText(winner + " wins", calibri, screen, 400, 400, (255, 0, 0))
+        else:
+            printText('Stalemate', calibri, screen, 400, 400, (255, 0, 0))
+        play_again.draw(screen)
 
     pygame.display.update()
+
+
+def game_loop():
+    board = Board(0, 0, HEIGHT)
+    while True:
+        pygame.time.delay(10)
+        drawWindow(screen, piece_list)
+
+        if selected_piece != None:
+            pos = pygame.mouse.get_pos()
+            selected_piece.cords = (pos[0] - 48, pos[1] - 48)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    return
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                pos = pygame.mouse.get_pos()
+                sq = get_square(pos)
+                if pygame.mouse.get_pressed()[0]:
+                    board.lift_piece(pos)
+                    # pick up a piece when none are selected
+                    if sq != None and occupied[sq] != None and selected_piece == None and occupied[sq].colour == turn:
+                        selected_piece = occupied[sq]
+                        selected_piece.state = 'Lifted'
+                        selected_piece.cords = (pos[0] - 48, pos[1] - 48)
+                    elif sq != None and selected_piece != None and sq not in selected_piece.legal_moves(piece_list, occupied): # select a different piece
+                        selected_piece.state = 'Down'
+                        if occupied[sq] != None and occupied[sq].colour == turn:
+                            selected_piece = occupied[sq]
+                            selected_piece.state = 'Lifted'
+                            selected_piece.cords = (pos[0] - 48, pos[1] - 48)
+                        else:
+                            selected_piece = None
+
+
+            elif event.type == pygame.MOUSEBUTTONUP:
+                pos = pygame.mouse.get_pos()
+                sq = get_square(pos)
+                if selected_piece != None and sq != None: # check if a piece is selected
+                    if sq == selected_piece.position: # check for click to move
+                        selected_piece.state = 'Selected'
+                    # check for drag to move
+                    elif sq in selected_piece.legal_moves(piece_list, occupied):
+                        selected_piece.move(sq, piece_list, occupied)
+                        # check for pawn promotion
+                        if str(type(selected_piece)) == "<class 'pieces.Pawn'>":
+                            selected_piece.promote(piece_list, occupied)
+
+                        selected_piece = None
+                        if turn == 'White':
+                            turn = 'Black'
+                        else:
+                            turn = 'White'
+                        if is_checkmate(piece_list, turn) == True:
+                            if turn == 'White':
+                                winner = 'Black'
+                            else:
+                                winner = 'White'
+                        elif is_checkmate(piece_list, turn) == 'stalemate':
+                            winner = 'stalemate'
+                    # unselected if illegal move
+                    elif selected_piece.state == 'Lifted':
+                        selected_piece.state = 'Down'
+                elif selected_piece != None:
+                    selected_piece.state = 'Down'
+                    selected_piece = None
+
 
 
 piece_list = setup()
@@ -180,70 +259,10 @@ turn = 'White'
 game_over = False
 winner = None
 
-inUse = True
-while inUse:
-    pygame.time.delay(10)
-    drawWindow(screen, piece_list)
-
-    if selected_piece != None:
-        pos = pygame.mouse.get_pos()
-        selected_piece.cords = (pos[0] - 48, pos[1] - 48)
-
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            inUse = False
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
-                inUse = False
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            pos = pygame.mouse.get_pos()
-            sq = get_square(pos)
-            if pygame.mouse.get_pressed()[0]:
-                # pick up a piece when none are selected
-                if sq != None and occupied[sq] != None and selected_piece == None and occupied[sq].colour == turn:
-                    selected_piece = occupied[sq]
-                    selected_piece.state = 'Lifted'
-                    selected_piece.cords = (pos[0] - 48, pos[1] - 48)
-                elif sq != None and selected_piece != None and sq not in selected_piece.legal_moves(piece_list, occupied): # select a different piece
-                    selected_piece.state = 'Down'
-                    if occupied[sq] != None and occupied[sq].colour == turn:
-                        selected_piece = occupied[sq]
-                        selected_piece.state = 'Lifted'
-                        selected_piece.cords = (pos[0] - 48, pos[1] - 48)
-                    else:
-                        selected_piece = None
+# buttons
+play_again = Button(300, 100, 250, 500, 'Play Again', (127, 127, 127),
+                    font_size=60)
 
 
-        elif event.type == pygame.MOUSEBUTTONUP:
-            pos = pygame.mouse.get_pos()
-            sq = get_square(pos)
-            if selected_piece != None and sq != None: # check if a piece is selected
-                if sq == selected_piece.position: # check for click to move
-                    selected_piece.state = 'Selected'
-                # check for drag to move
-                elif sq in selected_piece.legal_moves(piece_list, occupied):
-                    selected_piece.move(sq, piece_list, occupied)
-                    # check for pawn promotion
-                    if str(type(selected_piece)) == "<class 'pieces.Pawn'>":
-                        selected_piece.promote(piece_list, occupied)
-
-                    selected_piece = None
-                    if turn == 'White':
-                        turn = 'Black'
-                    else:
-                        turn = 'White'
-                    if is_checkmate(piece_list, turn) == True:
-                        if turn == 'White':
-                            winner = 'Black'
-                        else:
-                            winner = 'White'
-                    elif is_checkmate(piece_list, turn) == 'stalemate':
-                        winner = 'stalemate'
-                # unselected if illegal move
-                elif selected_piece.state == 'Lifted':
-                    selected_piece.state = 'Down'
-            elif selected_piece != None:
-                selected_piece.state = 'Down'
-                selected_piece = None
-
+game_loop() # run the game
 pygame.quit()
