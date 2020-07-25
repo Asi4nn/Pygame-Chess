@@ -8,7 +8,7 @@ class Button(object):
     Button object class
     '''
 
-    def __init__(self, height, width, x, y, text, colour,
+    def __init__(self, x, y, width, height, text, colour,
                  text_colour=(0, 0, 0), outline=0,
                  font='calibri', font_size=12):
         self.height = height
@@ -25,10 +25,10 @@ class Button(object):
 
     def draw(self, canvas):
         pygame.draw.rect(canvas, self.colour, (self.x,
-                            self.y, self.height, self.width), self.outline)
+                            self.y, self.width, self.height), self.outline)
         text = pygame.font.SysFont(self.font, self.font_size).render(self.text, 1, self.text_colour)
         textbox = text.get_rect()
-        textbox.center = (self.x + self.height//2, self.y + self.width//2)
+        textbox.center = (self.x + self.width//2, self.y + self.height//2)
         canvas.blit(text, textbox)
 
 

@@ -1,6 +1,8 @@
 # board.py
 
 import pygame
+from pieces import *
+from button import *
 pygame.init()
 
 squares = {} # square names matched to their cords
@@ -10,6 +12,9 @@ for i in range(1, 9):
 
 
 board = pygame.image.load("Images\Board.png") # board image
+circle = pygame.image.load("Images\circle.png")
+circle = pygame.transform.scale(circle, (96, 96)).convert_alpha()
+circle.fill((255, 255, 255, 100), None, pygame.BLEND_RGBA_MULT)
 
 class Board(object):
     '''
@@ -20,12 +25,19 @@ class Board(object):
         self.x = x
         self.y = y
         self.size = size
-        self.pieces = []
+        self.piece_list = []
         self.turn = 'White'
         self.selected_piece = None
         self.occupied = {}
+        for i in range(1, 9):
+            for j, file in enumerate(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']):
+                self.occupied[file + str(i)] = None
+        self.game_over = False
+        self.winner = None
+        self.image = pygame.transform.scale(pygame.image.load("Images\Board.png"), (self.size, self.size))
 
 
+    @staticmethod
     def get_square(cords):
         '''
         Returns the square that is at the given cords
@@ -57,68 +69,108 @@ class Board(object):
         return col + row
 
 
+    def is_checkmate(self):
+        '''
+        Returns if colour is checkmated
+        Returns 'stalemate' if stalemate
+        '''
+        for piece in self.piece_list:
+            if piece.colour == self.turn and piece.legal_moves(self.piece_list, self.occupied) != []:
+                return False
+            if str(type(piece)) == "<class 'pieces.King'>" and piece.colour == self.turn:
+                king = piece
+        if king.in_check(self.piece_list, self.occupied):
+            return True
+        else:
+            return 'stalemate'
+
+
     def setup(self):
+        self.selected_piece = None
+        self.turn = 'White'
+        self.game_over = False
+        self.winner = None
+        self.piece_list = []
+        for i in range(1, 9):
+            for j, file in enumerate(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']):
+                self.occupied[file + str(i)] = None
         # pawns
         for i in range(8):
-            self.pieces.append(Pawn("White", chr(ord('a') + i) + '2'))
-            self.occupied[chr(ord('a') + i) + '2'] = self.pieces[-1]
+            self.piece_list.append(Pawn("White", chr(ord('a') + i) + '2'))
+            self.occupied[chr(ord('a') + i) + '2'] = self.piece_list[-1]
 
         for i in range(8):
-            self.pieces.append(Pawn("Black", chr(ord('a') + i) + '7'))
-            self.occupied[chr(ord('a') + i) + '7'] = self.pieces[-1]
+            self.piece_list.append(Pawn("Black", chr(ord('a') + i) + '7'))
+            self.occupied[chr(ord('a') + i) + '7'] = self.piece_list[-1]
 
         # bishops
-        self.pieces.append(Bishop("White", 'c1'))
-        self.occupied['c1'] = self.pieces[-1]
-        self.pieces.append(Bishop("White", 'f1'))
-        self.occupied['f1'] = self.pieces[-1]
+        self.piece_list.append(Bishop("White", 'c1'))
+        self.occupied['c1'] = self.piece_list[-1]
+        self.piece_list.append(Bishop("White", 'f1'))
+        self.occupied['f1'] = self.piece_list[-1]
 
-        self.pieces.append(Bishop("Black", 'c8'))
-        self.occupied['c8'] = self.pieces[-1]
-        self.pieces.append(Bishop("Black", 'f8'))
-        self.occupied['f8'] = self.pieces[-1]
+        self.piece_list.append(Bishop("Black", 'c8'))
+        self.occupied['c8'] = self.piece_list[-1]
+        self.piece_list.append(Bishop("Black", 'f8'))
+        self.occupied['f8'] = self.piece_list[-1]
 
         # knights
-        self.pieces.append(Knight("White", 'b1'))
-        self.occupied['b1'] = self.pieces[-1]
-        self.pieces.append(Knight("White", 'g1'))
-        self.occupied['g1'] = self.pieces[-1]
+        self.piece_list.append(Knight("White", 'b1'))
+        self.occupied['b1'] = self.piece_list[-1]
+        self.piece_list.append(Knight("White", 'g1'))
+        self.occupied['g1'] = self.piece_list[-1]
 
-        self.pieces.append(Knight("Black", 'b8'))
-        self.occupied['b8'] = self.pieces[-1]
-        self.pieces.append(Knight("Black", 'g8'))
-        self.occupied['g8'] = self.pieces[-1]
+        self.piece_list.append(Knight("Black", 'b8'))
+        self.occupied['b8'] = self.piece_list[-1]
+        self.piece_list.append(Knight("Black", 'g8'))
+        self.occupied['g8'] = self.piece_list[-1]
 
         # rooks
-        self.pieces.append(Rook("White", 'a1'))
-        self.occupied['a1'] = self.pieces[-1]
-        self.pieces.append(Rook("White", 'h1'))
-        self.occupied['h1'] = self.pieces[-1]
+        self.piece_list.append(Rook("White", 'a1'))
+        self.occupied['a1'] = self.piece_list[-1]
+        self.piece_list.append(Rook("White", 'h1'))
+        self.occupied['h1'] = self.piece_list[-1]
 
-        self.pieces.append(Rook("Black", 'a8'))
-        self.occupied['a8'] = self.pieces[-1]
-        self.pieces.append(Rook("Black", 'h8'))
-        self.occupied['h8'] = self.pieces[-1]
+        self.piece_list.append(Rook("Black", 'a8'))
+        self.occupied['a8'] = self.piece_list[-1]
+        self.piece_list.append(Rook("Black", 'h8'))
+        self.occupied['h8'] = self.piece_list[-1]
 
         # queens and kings
-        self.pieces.append(Queen("White", 'd1'))
-        self.occupied['d1'] = self.pieces[-1]
-        self.pieces.append(Queen("Black", 'd8'))
-        self.occupied['d8'] = self.pieces[-1]
+        self.piece_list.append(Queen("White", 'd1'))
+        self.occupied['d1'] = self.piece_list[-1]
+        self.piece_list.append(Queen("Black", 'd8'))
+        self.occupied['d8'] = self.piece_list[-1]
 
-        self.pieces.append(King("White", 'e1'))
-        self.occupied['e1'] = self.pieces[-1]
-        self.pieces.append(King("Black", 'e8'))
-        self.occupied['e8'] = self.pieces[-1]
+        self.piece_list.append(King("White", 'e1'))
+        self.occupied['e1'] = self.piece_list[-1]
+        self.piece_list.append(King("Black", 'e8'))
+        self.occupied['e8'] = self.piece_list[-1]
 
 
-    def draw(self, canvas):
+    def draw(self, canvas, font):
         # draw the board
-        board = pygame.transform.scale(board, (self.size, self.size))
-        canvas.blit(board, (self.x, self.y))
+        canvas.blit(self.image, (self.x, self.y))
+
+        if self.selected_piece != None:
+            pos = pygame.mouse.get_pos()
+            self.selected_piece.cords = (pos[0] - 48, pos[1] - 48)
+
+        # draw pieces
+        lifted = None
+        for piece in self.piece_list:
+            if piece != self.selected_piece:
+                piece.draw(canvas, circle, self.piece_list, self.occupied)
+            else:
+                lifted = piece
+        if lifted != None: # draw lifted piece last so that it is at the front
+            lifted.draw(canvas, circle, self.piece_list, self.occupied)
 
 
     def lift_piece(self, pos):
+        if self.game_over:
+            return
+
         sq = self.get_square(pos)
         if sq == None:
             return
@@ -126,14 +178,56 @@ class Board(object):
         # pick up a piece when none are selected
         if self.occupied[sq] != None and self.selected_piece == None and self.occupied[sq].colour == self.turn:
             self.selected_piece = self.occupied[sq]
-            selected_piece.state = 'Lifted'
-            selected_piece.cords = (pos[0] - 48, pos[1] - 48)
+            self.selected_piece.state = 'Lifted'
+            self.selected_piece.cords = (pos[0] - 48, pos[1] - 48)
         # select a different piece
-        elif selected_piece != None and sq not in selected_piece.legal_moves(piece_list, occupied):
-            selected_piece.state = 'Down'
-            if occupied[sq] != None and occupied[sq].colour == turn:
-                selected_piece = occupied[sq]
-                selected_piece.state = 'Lifted'
-                selected_piece.cords = (pos[0] - 48, pos[1] - 48)
+        elif self.selected_piece != None and sq not in self.selected_piece.legal_moves(self.piece_list, self.occupied):
+            self.selected_piece.state = 'Down'
+            if self.occupied[sq] != None and self.occupied[sq].colour == self.turn:
+                self.selected_piece = self.occupied[sq]
+                self.selected_piece.state = 'Lifted'
+                self.selected_piece.cords = (pos[0] - 48, pos[1] - 48)
             else:
-                selected_piece = None
+                self.selected_piece = None
+
+
+    def move_piece(self, pos):
+        if self.game_over:
+            return
+
+        sq = self.get_square(pos)
+        if self.selected_piece != None and sq != None: # check if a piece is selected
+            if sq == self.selected_piece.position: # check for click to move
+                self.selected_piece.state = 'Selected'
+            # check for drag to move
+            elif sq in self.selected_piece.legal_moves(self.piece_list, self.occupied):
+                self.selected_piece.move(sq, self.piece_list, self.occupied)
+                # check for pawn promotion
+                if str(type(self.selected_piece)) == "<class 'piece_list.Pawn'>":
+                    self.selected_piece.promote(self.piece_list, self.occupied)
+
+                self.selected_piece = None
+
+                # swap turns
+                if self.turn == 'White':
+                    self.turn = 'Black'
+                else:
+                    self.turn = 'White'
+
+                # check for checkmate after each move
+                if self.is_checkmate() == True:
+                    if self.turn == 'White':
+                        self.winner = 'Black'
+                    else:
+                        self.winner = 'White'
+                    self.game_over = True
+                elif self.is_checkmate() == 'stalemate':
+                    self.winner = 'stalemate'
+                    self.game_over = True
+
+            # unselected if illegal move
+            elif self.selected_piece.state == 'Lifted':
+                    self.selected_piece.state = 'Down'
+        elif self.selected_piece != None:
+            self.selected_piece.state = 'Down'
+            self.selected_piece = None
