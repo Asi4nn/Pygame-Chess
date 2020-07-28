@@ -88,6 +88,7 @@ class Pawn(Piece):
             image = pieces.subsurface((1750, 350, 332, 340))
             image = pygame.transform.scale(image, (96, 96)).convert_alpha()
             self.image = image
+        self.en_passant = False # keep track if this move can be played onto this pawn
 
 
     def possible_captures(self):
@@ -126,6 +127,25 @@ class Pawn(Piece):
         for dest in self.possible_captures():
             if dest in occupied and occupied[dest] != None and occupied[dest].colour != self.colour:
                 legal.append(dest)
+
+        # check en passant
+        left = chr(ord(self.position[0]) - 1) + self.position[1]
+        right = chr(ord(self.position[0]) + 1) + self.position[1]
+        if (left in occupied and str(type(occupied[left])) == "<class 'pieces.Pawn'>" and occupied[left].en_passant == True):
+            if self.colour == 'White':
+                if occupied[chr(ord(self.position[0]) - 1) + str(int(self.position[1]) + 1)] == None:
+                    legal.append(chr(ord(self.position[0]) - 1) + str(int(self.position[1]) + 1))
+            else: # if colour is black
+                if occupied[chr(ord(self.position[0]) - 1) + str(int(self.position[1]) - 1)] == None:
+                    legal.append(chr(ord(self.position[0]) - 1) + str(int(self.position[1]) - 1))
+
+        if (right in occupied and str(type(occupied[right])) == "<class 'pieces.Pawn'>" and occupied[right].en_passant == True):
+            if self.colour == 'White':
+                if occupied[chr(ord(self.position[0]) + 1) + str(int(self.position[1]) + 1)] == None:
+                    legal.append(chr(ord(self.position[0]) + 1) + str(int(self.position[1]) + 1))
+            else: # if colour is black
+                if occupied[chr(ord(self.position[0]) + 1) + str(int(self.position[1]) - 1)] == None:
+                    legal.append(chr(ord(self.position[0]) + 1) + str(int(self.position[1]) - 1))
 
 
         next_checker = []
@@ -186,6 +206,37 @@ class Pawn(Piece):
             queen = Queen(self.colour, self.position)
             piece_list[piece_list.index(self)] = queen
             occupied[self.position] = queen
+
+
+    def move(self, dest, piece_list, occupied):
+        en_passant = False
+        if occupied[dest] == None and self.position[0] != dest[0]:
+            en_passant = True
+        if occupied[dest] == None and en_passant == False:
+            move.play()
+        else:
+            capture.play()
+            if en_passant == False:
+                piece_list.remove(occupied[dest])
+            occupied[dest] = self
+
+        if abs(int(self.position[1]) - int(dest[1])) == 2:
+            self.en_passant = True
+        else:
+            self.en_passant = False
+
+        occupied[self.position] = None
+        self.position = dest
+        occupied[self.position] = self
+        self.state = 'Down'
+
+        if en_passant:
+            if self.colour == 'White':
+                piece_list.remove(occupied[self.position[0] + str(int(self.position[1]) - 1)])
+                occupied[self.position[0] + str(int(self.position[1]) - 1)] = None
+            else: # if self.colour == 'Black':
+                piece_list.remove(occupied[self.position[0] + str(int(self.position[1]) + 1)])
+                occupied[self.position[0] + str(int(self.position[1]) + 1)] = None
 
 
 class Bishop(Piece):
