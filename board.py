@@ -74,12 +74,14 @@ class Board(object):
         Returns if colour is checkmated
         Returns 'stalemate' if stalemate
         '''
+        king = None
         for piece in self.piece_list:
             if piece.colour == self.turn and piece.legal_moves(self.piece_list, self.occupied) != []:
                 return False
+            print(str(type(piece)))
             if str(type(piece)) == "<class 'pieces.King'>" and piece.colour == self.turn:
                 king = piece
-        if king.in_check(self.piece_list, self.occupied):
+        if king != None and king.in_check(self.piece_list, self.occupied):
             return True
         else:
             return 'stalemate'
