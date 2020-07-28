@@ -201,9 +201,10 @@ class Board(object):
                 self.selected_piece.state = 'Selected'
             # check for drag to move
             elif sq in self.selected_piece.legal_moves(self.piece_list, self.occupied):
+                self.reset_enpassant()
                 self.selected_piece.move(sq, self.piece_list, self.occupied)
                 # check for pawn promotion
-                if str(type(self.selected_piece)) == "<class 'piece_list.Pawn'>":
+                if str(type(self.selected_piece)) == "<class 'pieces.Pawn'>":
                     self.selected_piece.promote(self.piece_list, self.occupied)
 
                 self.selected_piece = None
@@ -231,3 +232,12 @@ class Board(object):
         elif self.selected_piece != None:
             self.selected_piece.state = 'Down'
             self.selected_piece = None
+
+
+    def reset_enpassant(self):
+        '''
+        Small func to set the ability to en passant to false after a turn in which it is true
+        '''
+        for piece in self.piece_list:
+            if str(type(piece)) == "<class 'pieces.Pawn'>" and piece.en_passant:
+                piece.en_passant = False
