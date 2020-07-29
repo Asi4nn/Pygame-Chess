@@ -74,14 +74,12 @@ class Board(object):
         Returns if colour is checkmated
         Returns 'stalemate' if stalemate
         '''
-        king = None
         for piece in self.piece_list:
             if piece.colour == self.turn and piece.legal_moves(self.piece_list, self.occupied) != []:
                 return False
-            print(str(type(piece)))
             if str(type(piece)) == "<class 'pieces.King'>" and piece.colour == self.turn:
                 king = piece
-        if king != None and king.in_check(self.piece_list, self.occupied):
+        if king.in_check(self.piece_list, self.occupied):
             return True
         else:
             return 'stalemate'
@@ -218,13 +216,14 @@ class Board(object):
                     self.turn = 'White'
 
                 # check for checkmate after each move
-                if self.is_checkmate() == True:
+                mate = self.is_checkmate()
+                if mate == True:
                     if self.turn == 'White':
                         self.winner = 'Black'
                     else:
                         self.winner = 'White'
                     self.game_over = True
-                elif self.is_checkmate() == 'stalemate':
+                elif mate == 'stalemate':
                     self.winner = 'stalemate'
                     self.game_over = True
 
