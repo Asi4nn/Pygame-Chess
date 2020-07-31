@@ -34,10 +34,8 @@ class Board(object):
                 self.occupied[file + str(i)] = None
         self.game_over = False
         self.winner = None
-        if self.player == 'Black':
-            self.image = pygame.transform.flip(pygame.transform.scale(pygame.image.load("Images\Board.png"), (self.size, self.size)), True, False)
-        else: # if self.player == 'White'
-            self.image = pygame.transform.scale(pygame.image.load("Images\Board.png"), (self.size, self.size))
+        self.image = pygame.transform.scale(pygame.image.load("Images\Board.png"), (self.size, self.size))
+
 
 
     @staticmethod
