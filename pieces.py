@@ -9,11 +9,13 @@ pieces = pygame.image.load("Images\Pieces.png") # spritesheet of all pieces
 check_square = pygame.image.load("Images\checked.png")
 check_square = pygame.transform.scale(check_square, (96, 96)).convert_alpha()
 
-# square names matched to their cords
-squares = {}
+# square names matched to their cords, now with 2 dicts for both sides
+squares_black = {}
+squares_white = {}
 for i in range(1, 9):
     for j, file in enumerate(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']):
-        squares[file + str(i)] = (16 + 96*j, 800 - 16 - 96*i)
+        squares_white[file + str(i)] = (16 + 96*j, 800 - 16 - 96*i)
+        squares_black[file + str(i)] = (800 - 16 - 96*(j+1), 16 + 96*(i-1))
 
 
 # sounds
@@ -33,7 +35,11 @@ class Piece(object):
         self.cords = (0, 0)
 
 
-    def draw(self, screen, outline, piece_list, occupied):
+    def draw(self, screen, outline, piece_list, occupied, player):
+        if player == 'White':
+            squares = squares_white
+        else: # if player == 'Black'
+            squares = squares_black
         if self.state == 'Down':
             screen.blit(self.image, squares[self.position])
         elif self.state == 'Selected':
@@ -976,7 +982,11 @@ class King(Piece):
         return False
 
 
-    def draw(self, screen, outline, piece_list, occupied):
+    def draw(self, screen, outline, piece_list, occupied, player):
+        if player == 'White':
+            squares = squares_white
+        else: # if player == 'Black'
+            squares = squares_black
         if self.in_check(piece_list, occupied):
             screen.blit(check_square, squares[self.position])
         if self.state == 'Down':

@@ -3,6 +3,7 @@
 import pygame
 from button import *
 from board import *
+from network import Network
 pygame.mixer.pre_init(22050, -16, 2, 1024)
 pygame.init()
 pygame.mixer.quit()
@@ -46,7 +47,9 @@ def drawWindow(canvas, board):
 
 
 def game_loop(screen):
-    board = Board(0, 0, HEIGHT)
+    n = Network()
+    startBoard = n.getBoard()
+    board = Board(0, 0, HEIGHT, 'Black')
     board.setup()
     while True:
         pygame.time.delay(10)

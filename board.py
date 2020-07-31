@@ -11,7 +11,6 @@ for i in range(1, 9):
         squares[file + str(i)] = (16 + 96*j, 800 - 16 - 96*i)
 
 
-board = pygame.image.load("Images\Board.png") # board image
 circle = pygame.image.load("Images\circle.png")
 circle = pygame.transform.scale(circle, (96, 96)).convert_alpha()
 circle.fill((255, 255, 255, 100), None, pygame.BLEND_RGBA_MULT)
@@ -21,10 +20,11 @@ class Board(object):
     Board object containing most of the game
     '''
 
-    def __init__(self, x, y, size):
+    def __init__(self, x, y, size, player):
         self.x = x
         self.y = y
         self.size = size
+        self.player = player
         self.piece_list = []
         self.turn = 'White'
         self.selected_piece = None
@@ -34,11 +34,14 @@ class Board(object):
                 self.occupied[file + str(i)] = None
         self.game_over = False
         self.winner = None
-        self.image = pygame.transform.scale(pygame.image.load("Images\Board.png"), (self.size, self.size))
+        if self.player == 'Black':
+            self.image = pygame.transform.flip(pygame.transform.scale(pygame.image.load("Images\Board.png"), (self.size, self.size)), True, False)
+        else: # if self.player == 'White'
+            self.image = pygame.transform.scale(pygame.image.load("Images\Board.png"), (self.size, self.size))
 
 
     @staticmethod
-    def get_square(cords):
+    def get_square(cords, player):
         '''
         Returns the square that is at the given cords
         Note: cords on the border returns None
@@ -54,17 +57,29 @@ class Board(object):
 
         col = None
         for j, file in enumerate(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']):
-            if 16 + 96*j > cords[0]:
-                col = chr(ord(file) - 1)
-                break
+            if player == 'White':
+                if 16 + 96*j > cords[0]:
+                    col = chr(ord(file) - 1)
+                    break
+            else: # if player == 'Black'
+                if 800 - 16 - 96*j < cords[0]:
+                    col = chr(ord(file) - 1)
+                    break
         if col == None:
             col = 'h'
 
-
+        row = None
         for i in range(1, 9):
-            if 800 - 16 - 96*i < cords[1]:
-                row = str(i)
-                break
+            if player == 'White':
+                if 800 - 16 - 96*i < cords[1]:
+                    row = str(i)
+                    break
+            else: # if player == 'Black'
+                if 16 + 96*(i-1) > cords[1]:
+                    row = str(i - 1)
+                    break
+        if row == None:
+            row = '8'
 
         return col + row
 
@@ -160,18 +175,18 @@ class Board(object):
         lifted = None
         for piece in self.piece_list:
             if piece != self.selected_piece:
-                piece.draw(canvas, circle, self.piece_list, self.occupied)
+                piece.draw(canvas, circle, self.piece_list, self.occupied, self.player)
             else:
                 lifted = piece
         if lifted != None: # draw lifted piece last so that it is at the front
-            lifted.draw(canvas, circle, self.piece_list, self.occupied)
+            lifted.draw(canvas, circle, self.piece_list, self.occupied, self.player)
 
 
     def lift_piece(self, pos):
         if self.game_over:
             return
 
-        sq = self.get_square(pos)
+        sq = self.get_square(pos, self.player)
         if sq == None:
             return
 
@@ -195,7 +210,7 @@ class Board(object):
         if self.game_over:
             return
 
-        sq = self.get_square(pos)
+        sq = self.get_square(pos, self.player)
         if self.selected_piece != None and sq != None: # check if a piece is selected
             if sq == self.selected_piece.position: # check for click to move
                 self.selected_piece.state = 'Selected'
