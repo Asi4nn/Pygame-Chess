@@ -49,7 +49,7 @@ def drawWindow(canvas, board):
 def game_loop(screen):
     n = Network()
     startBoard = n.getBoard()
-    board = Board(0, 0, HEIGHT, 'Black')
+    board = Board(0, 0, HEIGHT, 'White')
     board.setup()
     while True:
         pygame.time.delay(10)

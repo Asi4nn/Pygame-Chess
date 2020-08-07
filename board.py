@@ -15,6 +15,7 @@ circle = pygame.image.load("Images\circle.png")
 circle = pygame.transform.scale(circle, (96, 96)).convert_alpha()
 circle.fill((255, 255, 255, 100), None, pygame.BLEND_RGBA_MULT)
 
+
 class Board(object):
     '''
     Board object containing most of the game
@@ -35,8 +36,6 @@ class Board(object):
         self.game_over = False
         self.winner = None
         self.image = pygame.transform.scale(pygame.image.load("Images\Board.png"), (self.size, self.size))
-
-
 
     @staticmethod
     def get_square(cords, player):
@@ -72,15 +71,14 @@ class Board(object):
                 if 800 - 16 - 96*i < cords[1]:
                     row = str(i)
                     break
-            else: # if player == 'Black'
+            else:  # if player == 'Black'
                 if 16 + 96*(i-1) > cords[1]:
                     row = str(i - 1)
                     break
-        if row == None:
+        if row is None:
             row = '8'
 
         return col + row
-
 
     def is_checkmate(self):
         '''
@@ -96,7 +94,6 @@ class Board(object):
             return True
         else:
             return 'stalemate'
-
 
     def setup(self):
         self.selected_piece = None
@@ -160,12 +157,11 @@ class Board(object):
         self.piece_list.append(King("Black", 'e8'))
         self.occupied['e8'] = self.piece_list[-1]
 
-
     def draw(self, canvas, font):
         # draw the board
         canvas.blit(self.image, (self.x, self.y))
 
-        if self.selected_piece != None:
+        if self.selected_piece is not None:
             pos = pygame.mouse.get_pos()
             self.selected_piece.cords = (pos[0] - 48, pos[1] - 48)
 
@@ -176,41 +172,39 @@ class Board(object):
                 piece.draw(canvas, circle, self.piece_list, self.occupied, self.player)
             else:
                 lifted = piece
-        if lifted != None: # draw lifted piece last so that it is at the front
+        if lifted is not None: # draw lifted piece last so that it is at the front
             lifted.draw(canvas, circle, self.piece_list, self.occupied, self.player)
-
 
     def lift_piece(self, pos):
         if self.game_over:
             return
 
         sq = self.get_square(pos, self.player)
-        if sq == None:
+        if sq is None:
             return
 
         # pick up a piece when none are selected
-        if self.occupied[sq] != None and self.selected_piece == None and self.occupied[sq].colour == self.turn:
+        if self.occupied[sq] is not None and self.selected_piece is None and self.occupied[sq].colour == self.turn:
             self.selected_piece = self.occupied[sq]
             self.selected_piece.state = 'Lifted'
             self.selected_piece.cords = (pos[0] - 48, pos[1] - 48)
         # select a different piece
-        elif self.selected_piece != None and sq not in self.selected_piece.legal_moves(self.piece_list, self.occupied):
+        elif self.selected_piece is not None and sq not in self.selected_piece.legal_moves(self.piece_list, self.occupied):
             self.selected_piece.state = 'Down'
-            if self.occupied[sq] != None and self.occupied[sq].colour == self.turn:
+            if self.occupied[sq] is not None and self.occupied[sq].colour == self.turn:
                 self.selected_piece = self.occupied[sq]
                 self.selected_piece.state = 'Lifted'
                 self.selected_piece.cords = (pos[0] - 48, pos[1] - 48)
             else:
                 self.selected_piece = None
 
-
     def move_piece(self, pos):
         if self.game_over:
             return
 
         sq = self.get_square(pos, self.player)
-        if self.selected_piece != None and sq != None: # check if a piece is selected
-            if sq == self.selected_piece.position: # check for click to move
+        if self.selected_piece is not None and sq is not None:  # check if a piece is selected
+            if sq == self.selected_piece.position:  # check for click to move
                 self.selected_piece.state = 'Selected'
             # check for drag to move
             elif sq in self.selected_piece.legal_moves(self.piece_list, self.occupied):
@@ -230,7 +224,7 @@ class Board(object):
 
                 # check for checkmate after each move
                 mate = self.is_checkmate()
-                if mate == True:
+                if mate is True:
                     if self.turn == 'White':
                         self.winner = 'Black'
                     else:
@@ -242,11 +236,10 @@ class Board(object):
 
             # unselected if illegal move
             elif self.selected_piece.state == 'Lifted':
-                    self.selected_piece.state = 'Down'
-        elif self.selected_piece != None:
+                self.selected_piece.state = 'Down'
+        elif self.selected_piece is not None:
             self.selected_piece.state = 'Down'
             self.selected_piece = None
-
 
     def reset_enpassant(self):
         '''

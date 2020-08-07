@@ -2,6 +2,7 @@
 
 import socket
 
+
 class Network:
     '''
     Network class to send info from client to client
@@ -13,10 +14,8 @@ class Network:
         self.addr = (self.server, self.port)
         self.board = self.connect()
 
-
     def getBoard(self):
         return self.board
-
 
     def connect(self):
         try:
@@ -24,7 +23,6 @@ class Network:
             return self.client.recv(1024 * 8).decode()
         except:
             pass
-
 
     def send(self, data):
         try:

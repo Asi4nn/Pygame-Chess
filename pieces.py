@@ -31,14 +31,13 @@ class Piece(object):
     def __init__(self, colour, position):
         self.colour = colour
         self.position = position
-        self.state = 'Down' # 'Down' 'Lifted' or 'Selected'
+        self.state = 'Down'  # 'Down' 'Lifted' or 'Selected'
         self.cords = (0, 0)
-
 
     def draw(self, screen, outline, piece_list, occupied, player):
         if player == 'White':
             squares = squares_white
-        else: # if player == 'Black'
+        else:  # if player == 'Black'
             squares = squares_black
         if self.state == 'Down':
             screen.blit(self.image, squares[self.position])
@@ -52,9 +51,8 @@ class Piece(object):
                 screen.blit(outline, squares[sq])
             screen.blit(self.image, self.cords)
 
-
     def move(self, dest, piece_list, occupied):
-        if occupied[dest] == None:
+        if occupied[dest] is None:
             move.play()
         else:
             capture.play()
@@ -66,12 +64,11 @@ class Piece(object):
         occupied[self.position] = self
         self.state = 'Down'
 
-
     def move_capture(self, dest, piece_list, occupied):
         '''
         Returns the captured piece in a possible move
         '''
-        if occupied[dest] != None:
+        if occupied[dest] is not None:
             captured = occupied[dest]
             piece_list.remove(occupied[dest])
             occupied[dest] = self
@@ -94,8 +91,7 @@ class Pawn(Piece):
             image = pieces.subsurface((1750, 350, 332, 340))
             image = pygame.transform.scale(image, (96, 96)).convert_alpha()
             self.image = image
-        self.en_passant = False # keep track if this move can be played onto this pawn
-
+        self.en_passant = False  # keep track if this move can be played onto this pawn
 
     def possible_captures(self):
         legal = []
@@ -110,21 +106,20 @@ class Pawn(Piece):
 
         return legal
 
-
     def legal_moves(self, piece_list, occupied):
         '''
         Returns a list of squares a piece can move to
         '''
         legal = []
         if self.colour == 'White':
-            if occupied[self.position[0] + str(int(self.position[1]) + 1)] == None:
+            if occupied[self.position[0] + str(int(self.position[1]) + 1)] is None:
                 legal.append(self.position[0] + str(int(self.position[1]) + 1))
                 # check if pawn is on starting square, if so it can move 2 squares forward
                 if self.position[1] == '2' and occupied[self.position[0] + str(int(self.position[1]) + 2)] == None:
                     legal.append(self.position[0] + str(int(self.position[1]) + 2))
 
         elif self.colour == 'Black':
-            if occupied[self.position[0] + str(int(self.position[1]) - 1)] == None:
+            if occupied[self.position[0] + str(int(self.position[1]) - 1)] is None:
                 legal.append(self.position[0] + str(int(self.position[1]) - 1))
                 # check if pawn is on starting square, if so it can move 2 squares forward
                 if self.position[1] == '7' and occupied[self.position[0] + str(int(self.position[1]) - 2)] == None:
@@ -176,7 +171,6 @@ class Pawn(Piece):
 
         return next_checker
 
-
     def attacking_squares(self, piece_list, occupied):
         '''
         Returns the squares the piece is attacking
@@ -203,7 +197,6 @@ class Pawn(Piece):
 
         return legal
 
-
     def promote(self, piece_list, occupied):
         '''
         Check conditions of promotion and promotes as needed
@@ -212,7 +205,6 @@ class Pawn(Piece):
             queen = Queen(self.colour, self.position)
             piece_list[piece_list.index(self)] = queen
             occupied[self.position] = queen
-
 
     def move(self, dest, piece_list, occupied):
         en_passant = False
@@ -324,7 +316,6 @@ class Bishop(Piece):
                 piece_list.append(new)
 
         return next_checker
-
 
     def attacking_squares(self, piece_list, occupied):
         '''
