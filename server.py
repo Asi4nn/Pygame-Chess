@@ -45,7 +45,7 @@ def threaded_client(conn, player):
             else:
                 if data[2] == 'get':
                     reply = (piece_list, occupied)
-                else:  # if data[2] == 'update':
+                elif data[2] == 'update':
                     reply = data
                     piece_list = data[0]
                     occupied = data[1]

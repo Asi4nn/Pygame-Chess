@@ -5,7 +5,6 @@ pygame.init()
 
 pygame.display.set_mode((800, 800))
 
-check_square = pygame.image.load("Images\checked.png")
 pieces = pygame.image.load("Images\Pieces.png")  # spritesheet of all pieces
 piece_images = {}
 
@@ -980,6 +979,7 @@ class King(Piece):
         else: # if player == 'Black'
             squares = squares_black
         if self.in_check(piece_list, occupied):
+            check_square = pygame.image.load("Images\checked.png")
             check_square = pygame.transform.scale(check_square, (96, 96)).convert_alpha()
             screen.blit(check_square, squares[self.position])
         if self.state == 'Down':
