@@ -3,7 +3,6 @@
 import pygame
 from button import *
 from board import *
-from network import Network
 pygame.mixer.pre_init(22050, -16, 2, 1024)
 pygame.init()
 pygame.mixer.quit()
@@ -26,6 +25,7 @@ circle.fill((255, 255, 255, 100), None, pygame.BLEND_RGBA_MULT)
 play_again = Button(250, 500, 300, 100, 'Play Again', (127, 127, 127),
                     font_size=60)
 
+
 def printText(text, font, canvas, x, y, colour):
     theText = font.render(text, 1, colour)
     textbox = theText.get_rect()
@@ -47,10 +47,9 @@ def drawWindow(canvas, board):
 
 
 def game_loop(screen):
-    n = Network()
-    startBoard = n.getBoard()
-    board = Board(0, 0, HEIGHT, 'Black')  # change to black or white
+    board = Board(0, 0, HEIGHT, 'White')
     board.setup()
+
     while True:
         pygame.time.delay(10)
         drawWindow(screen, board)
@@ -72,5 +71,6 @@ def game_loop(screen):
                     if play_again.isPressed(pos):
                         board.setup()
 
-game_loop(screen) # run the game
+
+game_loop(screen)  # run the game
 pygame.quit()
