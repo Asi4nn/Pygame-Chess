@@ -1,9 +1,10 @@
 # network.py
 
 import socket
+import pickle
 
 
-class Network:
+class Network(object):
     '''
     Network class to send info from client to client
     '''
@@ -20,13 +21,13 @@ class Network:
     def connect(self):
         try:
             self.client.connect(self.addr)
-            return self.client.recv(1024 * 8).decode()
+            return pickle.loads(self.client.recv(1024 * 8))
         except:
             pass
 
     def send(self, data):
         try:
-            self.client.send(str.encode(data))
-            return self.client.recv(1024 * 8).decode()
+            self.client.send(pickle.dumps(data))
+            return pickle.loads(self.client.recv(1024 * 8))
         except socket.error as e:
             print(e)

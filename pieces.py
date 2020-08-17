@@ -5,9 +5,35 @@ pygame.init()
 
 pygame.display.set_mode((800, 800))
 
-pieces = pygame.image.load("Images\Pieces.png") # spritesheet of all pieces
 check_square = pygame.image.load("Images\checked.png")
-check_square = pygame.transform.scale(check_square, (96, 96)).convert_alpha()
+pieces = pygame.image.load("Images\Pieces.png")  # spritesheet of all pieces
+piece_images = {}
+
+w_pawn = pieces.subsurface((1750, 10, 332, 340))
+piece_images['w_pawn'] = pygame.transform.scale(w_pawn, (96, 96)).convert_alpha()
+b_pawn = pieces.subsurface((1750, 350, 332, 340))
+piece_images['b_pawn'] = pygame.transform.scale(b_pawn, (96, 96)).convert_alpha()
+w_bishop = pieces.subsurface((703, 0, 340, 340))
+piece_images['w_bishop'] = pygame.transform.scale(w_bishop, (96, 96)).convert_alpha()
+b_bishop = pieces.subsurface((703, 350, 340, 340))
+piece_images['b_bishop'] = pygame.transform.scale(b_bishop, (96, 96)).convert_alpha()
+w_knight = pieces.subsurface((1050, 0, 340, 340))
+piece_images['w_knight'] = pygame.transform.scale(w_knight, (96, 96)).convert_alpha()
+b_knight = pieces.subsurface((1050, 350, 340, 340))
+piece_images['b_knight'] = pygame.transform.scale(b_knight, (96, 96)).convert_alpha()
+w_rook = pieces.subsurface((1400, 0, 340, 340))
+piece_images['w_rook'] = pygame.transform.scale(w_rook, (96, 96)).convert_alpha()
+b_rook = pieces.subsurface((1400, 350, 340, 340))
+piece_images['b_rook'] = pygame.transform.scale(b_rook, (96, 96)).convert_alpha()
+w_queen = pieces.subsurface((355, 0, 340, 340))
+piece_images['w_queen'] = pygame.transform.scale(w_queen, (96, 96)).convert_alpha()
+b_queen = pieces.subsurface((355, 350, 340, 340))
+piece_images['b_queen'] = pygame.transform.scale(b_queen, (96, 96)).convert_alpha()
+w_king = pieces.subsurface((5, 0, 340, 340))
+piece_images['w_king'] = pygame.transform.scale(w_king, (96, 96)).convert_alpha()
+b_king = pieces.subsurface((5, 350, 340, 340))
+piece_images['b_king'] = pygame.transform.scale(b_king, (96, 96)).convert_alpha()
+
 
 # square names matched to their cords, now with 2 dicts for both sides
 squares_black = {}
@@ -40,16 +66,16 @@ class Piece(object):
         else:  # if player == 'Black'
             squares = squares_black
         if self.state == 'Down':
-            screen.blit(self.image, squares[self.position])
+            screen.blit(piece_images[self.image], squares[self.position])
         elif self.state == 'Selected':
-            screen.blit(self.image, squares[self.position])
+            screen.blit(piece_images[self.image], squares[self.position])
             screen.blit(outline, squares[self.position])
             for sq in self.legal_moves(piece_list, occupied):
                 screen.blit(outline, squares[sq])
         elif self.state == 'Lifted':
             for sq in self.legal_moves(piece_list, occupied):
                 screen.blit(outline, squares[sq])
-            screen.blit(self.image, self.cords)
+            screen.blit(piece_images[self.image], self.cords)
 
     def move(self, dest, piece_list, occupied):
         if occupied[dest] is None:
@@ -84,13 +110,9 @@ class Pawn(Piece):
     def __init__(self, colour, position):
         super(Pawn, self).__init__(colour, position)
         if colour == 'White':
-            image = pieces.subsurface((1750, 10, 332, 340))
-            image = pygame.transform.scale(image, (96, 96)).convert_alpha()
-            self.image = image
+            self.image = 'w_pawn'
         else:
-            image = pieces.subsurface((1750, 350, 332, 340))
-            image = pygame.transform.scale(image, (96, 96)).convert_alpha()
-            self.image = image
+            self.image = 'b_pawn'
         self.en_passant = False  # keep track if this move can be played onto this pawn
 
     def possible_captures(self):
@@ -147,7 +169,6 @@ class Pawn(Piece):
             else: # if colour is black
                 if occupied[chr(ord(self.position[0]) + 1) + str(int(self.position[1]) - 1)] == None:
                     legal.append(chr(ord(self.position[0]) + 1) + str(int(self.position[1]) - 1))
-
 
         next_checker = []
         for sq in legal:
@@ -242,13 +263,9 @@ class Bishop(Piece):
     def __init__(self, colour, position):
         super(Bishop, self).__init__(colour, position)
         if colour == 'White':
-            image = pieces.subsurface((703, 0, 340, 340))
-            image = pygame.transform.scale(image, (96, 96)).convert_alpha()
-            self.image = image
+            self.image = 'w_bishop'
         else:
-            image = pieces.subsurface((703, 350, 340, 340))
-            image = pygame.transform.scale(image, (96, 96)).convert_alpha()
-            self.image = image
+            self.image = 'b_bishop'
 
     def legal_moves(self, piece_list, occupied):
         '''
@@ -371,13 +388,9 @@ class Knight(Piece):
     def __init__(self, colour, position):
         super(Knight, self).__init__(colour, position)
         if colour == 'White':
-            image = pieces.subsurface((1050, 0, 340, 340))
-            image = pygame.transform.scale(image, (96, 96)).convert_alpha()
-            self.image = image
+            self.image = 'w_knight'
         else:
-            image = pieces.subsurface((1050, 350, 340, 340))
-            image = pygame.transform.scale(image, (96, 96)).convert_alpha()
-            self.image = image
+            self.image = 'b_knight'
 
 
     def legal_moves(self, piece_list, occupied):
@@ -470,13 +483,9 @@ class Rook(Piece):
         super(Rook, self).__init__(colour, position)
         self.has_moved = False # to keep track of castles
         if colour == 'White':
-            image = pieces.subsurface((1400, 0, 340, 340))
-            image = pygame.transform.scale(image, (96, 96)).convert_alpha()
-            self.image = image
+            self.image = 'w_rook'
         else:
-            image = pieces.subsurface((1400, 350, 340, 340))
-            image = pygame.transform.scale(image, (96, 96)).convert_alpha()
-            self.image = image
+            self.image = 'b_rook'
 
 
     def legal_moves(self, piece_list, occupied):
@@ -626,13 +635,9 @@ class Queen(Piece):
     def __init__(self, colour, position):
         super(Queen, self).__init__(colour, position)
         if colour == 'White':
-            image = pieces.subsurface((355, 0, 340, 340))
-            image = pygame.transform.scale(image, (96, 96)).convert_alpha()
-            self.image = image
+            self.image = 'w_queen'
         else:
-            image = pieces.subsurface((355, 350, 340, 340))
-            image = pygame.transform.scale(image, (96, 96)).convert_alpha()
-            self.image = image
+            self.image = 'b_queen'
 
 
     def legal_moves(self, piece_list, occupied):
@@ -839,13 +844,9 @@ class King(Piece):
         super(King, self).__init__(colour, position)
         self.has_moved = False # to keep track of castles
         if colour == 'White':
-            image = pieces.subsurface((5, 0, 340, 340))
-            image = pygame.transform.scale(image, (96, 96)).convert_alpha()
-            self.image = image
+            self.image = 'w_king'
         else:
-            image = pieces.subsurface((5, 350, 340, 340))
-            image = pygame.transform.scale(image, (96, 96)).convert_alpha()
-            self.image = image
+            self.image = 'b_king'
         self.around = []
         for i in range(-1, 2):
             for j in range(-1, 2):
@@ -979,15 +980,16 @@ class King(Piece):
         else: # if player == 'Black'
             squares = squares_black
         if self.in_check(piece_list, occupied):
+            check_square = pygame.transform.scale(check_square, (96, 96)).convert_alpha()
             screen.blit(check_square, squares[self.position])
         if self.state == 'Down':
-            screen.blit(self.image, squares[self.position])
+            screen.blit(piece_images[self.image], squares[self.position])
         elif self.state == 'Selected':
-            screen.blit(self.image, squares[self.position])
+            screen.blit(piece_images[self.image], squares[self.position])
             screen.blit(outline, squares[self.position])
             for sq in self.legal_moves(piece_list, occupied):
                 screen.blit(outline, squares[sq])
         elif self.state == 'Lifted':
             for sq in self.legal_moves(piece_list, occupied):
                 screen.blit(outline, squares[sq])
-            screen.blit(self.image, self.cords)
+            screen.blit(piece_images[self.image], self.cords)

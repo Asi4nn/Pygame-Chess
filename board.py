@@ -2,18 +2,12 @@
 
 import pygame
 from pieces import *
-from button import *
-pygame.init()
+from button import Button
 
-squares = {} # square names matched to their cords
+squares = {}  # square names matched to their cords
 for i in range(1, 9):
     for j, file in enumerate(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']):
         squares[file + str(i)] = (16 + 96*j, 800 - 16 - 96*i)
-
-
-circle = pygame.image.load("Images\circle.png")
-circle = pygame.transform.scale(circle, (96, 96)).convert_alpha()
-circle.fill((255, 255, 255, 100), None, pygame.BLEND_RGBA_MULT)
 
 
 class Board(object):
@@ -35,7 +29,6 @@ class Board(object):
                 self.occupied[file + str(i)] = None
         self.game_over = False
         self.winner = None
-        self.image = pygame.transform.scale(pygame.image.load("Images\Board.png"), (self.size, self.size))
 
     @staticmethod
     def get_square(cords, player):
@@ -79,6 +72,14 @@ class Board(object):
             row = '8'
 
         return col + row
+
+    def update(self, data):
+        '''
+        Updates the piece_list and occupied with the data tuple in the form
+        data = (piece_list, occupied)
+        '''
+        self.piece_list = data[0][:]
+        self.occupied = data[1].copy()
 
     def is_checkmate(self):
         '''
@@ -159,7 +160,13 @@ class Board(object):
 
     def draw(self, canvas, font):
         # draw the board
-        canvas.blit(self.image, (self.x, self.y))
+        circle = pygame.image.load("Images\circle.png")
+        circle = pygame.transform.scale(circle, (96, 96)).convert_alpha()
+        circle.fill((255, 255, 255, 100), None, pygame.BLEND_RGBA_MULT)
+        board = pygame.image.load("Images\Board.png")
+        board = pygame.transform.scale(board, (self.size, self.size))
+
+        canvas.blit(board, (self.x, self.y))
 
         if self.selected_piece is not None:
             pos = pygame.mouse.get_pos()

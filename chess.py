@@ -1,21 +1,25 @@
 # chess.py
 
 import pygame
-from button import *
-from board import *
-from network import Network
+
 pygame.mixer.pre_init(22050, -16, 2, 1024)
 pygame.init()
 pygame.mixer.quit()
-pygame.mixer.init(22050, -16, 2, 1024) # for some reason you have to init the mixer twice to not have sound delay
+pygame.mixer.init(22050, -16, 2, 1024)  # for some reason you have to init the mixer twice to not have sound delay
 
 WIDTH = 800
 HEIGHT = 800
 
-calibri = pygame.font.SysFont('calibri', 100)
-
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption('Pygame Chess')
+
+# you have to set the display mode before transforming images inside the
+# classes for some reason
+from button import Button
+from board import Board
+from network import Network
+
+calibri = pygame.font.SysFont('calibri', 100)
 
 # images
 circle = pygame.image.load("Images\circle.png")
@@ -25,6 +29,7 @@ circle.fill((255, 255, 255, 100), None, pygame.BLEND_RGBA_MULT)
 # buttons
 play_again = Button(250, 500, 300, 100, 'Play Again', (127, 127, 127),
                     font_size=60)
+
 
 def printText(text, font, canvas, x, y, colour):
     theText = font.render(text, 1, colour)
@@ -48,11 +53,13 @@ def drawWindow(canvas, board):
 
 def game_loop(screen):
     n = Network()
-    startBoard = n.getBoard()
-    board = Board(0, 0, HEIGHT, 'White')
+    colour = n.getBoard()
+    board = Board(0, 0, HEIGHT, colour)
     board.setup()
+
     while True:
         pygame.time.delay(10)
+        board.update(n.send((board.piece_list, board.occupied, 'get')))
         drawWindow(screen, board)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -68,9 +75,11 @@ def game_loop(screen):
                 pos = pygame.mouse.get_pos()
                 if not board.game_over:
                     board.move_piece(pos)
+                    board.update(n.send((board.piece_list, board.occupied, 'update')))
                 else:
                     if play_again.isPressed(pos):
                         board.setup()
 
-game_loop(screen) # run the game
+
+game_loop(screen)  # run the game
 pygame.quit()
